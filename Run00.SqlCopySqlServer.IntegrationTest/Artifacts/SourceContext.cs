@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
 {
 	public class SourceContext : DbContext
 	{
-		public SourceContext() : base("SourceContext") { }
+		public SourceContext(string connection) : base(connection) { }
 
 		public DbSet<Sample> Samples { get; set; }
 		public DbSet<SampleChild> SampleChildren { get; set; }
@@ -20,6 +17,7 @@ namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
 		public Guid Id { get; set; }
 		public string Value { get; set; }
 		public ICollection<SampleChild> Children { get; set; }
+		public Guid OwnerId { get; set; }
 	}
 
 	public class SampleChild
@@ -27,5 +25,6 @@ namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
 		public Guid Id { get; set; }
 		public string Value { get; set; }
 		public Sample Parent { get; set; }
+		public Guid OwnerId { get; set; }
 	}
 }

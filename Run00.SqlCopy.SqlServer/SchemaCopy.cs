@@ -13,10 +13,10 @@ namespace Run00.SqlCopySqlServer
 	{
 		void ISchemaCopy.CopySchema(DatabaseLocation source, DatabaseLocation target)
 		{
+			DropTargetDatabseIfExists(target);
+
 			var server = new Server(source.Server);
 			var transfer = new Transfer(server.Databases[source.Database]);
-			var dataFolder = Path.GetDirectoryName(server.Databases[source.Database].FileGroups[0].Files[0].FileName);
-			var targetFileName = Path.Combine(dataFolder, target.Database + ".mdf");
 
 			transfer.DestinationServer = target.Server;
 			transfer.DestinationDatabase = target.Database;
@@ -30,13 +30,37 @@ namespace Run00.SqlCopySqlServer
 			transfer.CopyAllDefaults = true;
 			transfer.CopyAllViews = false;
 			transfer.CopyAllSynonyms = true;
-			//transfer.CopyAllUserDefinedFunctions = true;
-			//transfer.CopyAllUserDefinedTypes = true;
 			transfer.CreateTargetDatabase = true;
-			transfer.TargetDatabaseFilePath = targetFileName;
 			transfer.DropDestinationObjectsFirst = true;
 
+			//transfer.CopyAllUserDefinedFunctions = true;
+			//transfer.CopyAllUserDefinedTypes = true;
+			//transfer.TargetDatabaseFilePath = dataFolder;
+
+			var dataFiles = server.Databases[source.Database].FileGroups.Cast<FileGroup>().SelectMany(fg => fg.Files.Cast<DataFile>()).Select(f => f.FileName);
+			MapDatabaseFiles(transfer.DatabaseFileMappings, dataFiles, source.Database, target.Database);
+
+			var logFiles = server.Databases[source.Database].LogFiles.Cast<LogFile>().Select(f => f.FileName);
+			MapDatabaseFiles(transfer.DatabaseFileMappings, logFiles, source.Database, target.Database);			
+
 			transfer.TransferData();
+		}
+
+		private static void DropTargetDatabseIfExists(DatabaseLocation location)
+		{
+			var server = new Server(location.Server);
+			var db = server.Databases[location.Database];
+			
+			if (db == null)
+				return;
+
+			db.Drop();
+		}
+
+		private static void MapDatabaseFiles(DatabaseFileMappingsDictionary dictionary, IEnumerable<string> sourceFiles, string sourceDb, string targetDb)
+		{
+			foreach (var file in sourceFiles)
+				dictionary.Add(file, file.Replace(sourceDb, targetDb));
 		}
 	}
 }

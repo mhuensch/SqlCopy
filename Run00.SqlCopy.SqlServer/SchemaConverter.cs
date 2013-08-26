@@ -61,7 +61,7 @@ namespace Run00.SqlCopySqlServer
 
 			// Property getter and setter attributes.
 			MethodAttributes propertyMethodAttributes =
-					MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
+					MethodAttributes.Public ;
 
 			// Define the getter method.
 			MethodBuilder getterMethod = builder.DefineMethod(
