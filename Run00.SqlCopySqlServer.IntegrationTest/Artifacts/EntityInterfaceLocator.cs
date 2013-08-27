@@ -9,12 +9,21 @@ namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
 {
 	public class EntityInterfaceLocator : IEntityInterfaceLocator
 	{
+		public EntityInterfaceLocator()
+		{
+			_filterMap = new Dictionary<string, IEnumerable<Type>>();
+			_filterMap.Add("Samples", new[] { typeof(IOwnedEntity) });
+			_filterMap.Add("SampleChilds", new[] { typeof(IOwnedEntity) });
+		}
+
 		IEnumerable<Type> IEntityInterfaceLocator.GetInterfacesForEntity(string entityName)
 		{
-			if (string.Equals(entityName, "Samples", StringComparison.InvariantCultureIgnoreCase) || string.Equals(entityName, "SampleChilds", StringComparison.InvariantCultureIgnoreCase))
-				return new[] { typeof(IOwnedEntity) };
+			if (_filterMap.ContainsKey(entityName) == false)
+				return Enumerable.Empty<Type>();
 
-			return Enumerable.Empty<Type>();
+			return _filterMap[entityName];
 		}
+
+		private Dictionary<string, IEnumerable<Type>> _filterMap;
 	}
 }

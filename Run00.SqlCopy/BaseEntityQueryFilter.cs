@@ -10,7 +10,7 @@ namespace Run00.SqlCopy
 	{
 		Type IEntityQueryFilter.EntityType { get { return typeof(T); } }
 
-		IQueryable IEntityQueryFilter.Filter(IQueryable query, IDbContext context)
+		IQueryable IEntityQueryFilter.Filter(IQueryable query, IDbRepository context)
 		{
 			if (typeof(T).IsAssignableFrom(query.ElementType))
 				return Filter((IQueryable<T>)query, context);
@@ -18,6 +18,6 @@ namespace Run00.SqlCopy
 			return query;
 		}
 
-		public abstract IQueryable<T> Filter(IQueryable<T> query, IDbContext context);
+		public abstract IQueryable<T> Filter(IQueryable<T> query, IDbRepository context);
 	}
 }

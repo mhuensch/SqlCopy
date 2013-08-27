@@ -1,5 +1,4 @@
-﻿using Run00.DynamicEf;
-using Run00.SqlCopy;
+﻿using Run00.SqlCopy;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -10,10 +9,10 @@ namespace Run00.SqlCopySqlServer
 {
 	public class ContextFactory : IContextFactory
 	{
-		IDbContext IContextFactory.CreateContext(DatabaseInfo info, IEnumerable<Type> entityTypes)
+		IDbRepository IContextFactory.CreateContext(DatabaseInfo info, IEnumerable<Type> entityTypes)
 		{
-			System.Data.Entity.Database.SetInitializer<Context>(null);
-			return new Context(info, entityTypes);
+			System.Data.Entity.Database.SetInitializer<DbRepository>(null);
+			return new DbRepository(info, entityTypes);
 		}
 	}
 }

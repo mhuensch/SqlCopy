@@ -33,6 +33,7 @@ namespace Run00.SqlCopySqlServer
 			{
 				var typeCast = cast.MakeGenericMethod(new Type[] {type});
 				var d = sourceContext.GetEntities(type);
+
 				foreach (var filter in _entityFilters)
 				{
 					if (filter.EntityType.IsAssignableFrom(type) == false)
@@ -42,19 +43,9 @@ namespace Run00.SqlCopySqlServer
 					d = typeCast.Invoke(null, new object[] { d }) as IQueryable;
 				}
 
-				//var objQueryType = typeof(ObjectQuery<>);
-				//var genObjQueryType = objQueryType.MakeGenericType(new[] { type });
-				//var prop = objQueryType.GetProperty("Parameters");
-
 				using (var sourceConnection = new SqlConnection(source.ConnectionString))
 				{
 					sourceConnection.Open();
-
-					//var command = new SqlCommand(query, sourceConnection);
-					//foreach (var param in copyParams)
-					//	command.Parameters.Add(new SqlParameter(param.Name, param.Value));
-
-					//var reader = command.ExecuteReader();
 
 					var reader = d.AsDataReader(type);
 					var sourceTable = sourceSchema.Tables.Where(t => t.Name == type.Name).Single();
@@ -64,7 +55,6 @@ namespace Run00.SqlCopySqlServer
 						var copy = new SqlBulkCopy(targetConnection);
 						copy.DestinationTableName = target.Database + "." + sourceTable.Schema + "." + sourceTable.Name;
 						copy.WriteToServer(reader);
-						//reader.Close();
 					}
 				}
 

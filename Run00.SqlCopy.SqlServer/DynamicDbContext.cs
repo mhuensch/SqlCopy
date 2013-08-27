@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Run00.DynamicEf
+namespace Run00.SqlCopySqlServer
 {
 	public class DynamicDbContext : DbContext
 	{

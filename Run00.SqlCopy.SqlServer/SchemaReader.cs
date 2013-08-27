@@ -11,10 +11,10 @@ namespace Run00.SqlCopySqlServer
 {
 	public class SchemaReader : ISchemaReader
 	{
-		Run00.SqlCopy.Database ISchemaReader.GetSchema(DatabaseInfo location)
+		Run00.SqlCopySqlServer.Database ISchemaReader.GetSchema(DatabaseInfo location)
 		{
 			var server = new Server(location.Server);
-			var result = new Run00.SqlCopy.Database()
+			var result = new Run00.SqlCopySqlServer.Database()
 			{
 				Name = location.Database,
 				Tables = GetTables(server.Databases[location.Database])
@@ -23,9 +23,9 @@ namespace Run00.SqlCopySqlServer
 			return result;
 		}
 
-		private IEnumerable<Run00.SqlCopy.Table> GetTables(Microsoft.SqlServer.Management.Smo.Database database)
+		private IEnumerable<Run00.SqlCopySqlServer.Table> GetTables(Microsoft.SqlServer.Management.Smo.Database database)
 		{
-			return database.Tables.Cast<Microsoft.SqlServer.Management.Smo.Table>().Select(t => new Run00.SqlCopy.Table()
+			return database.Tables.Cast<Microsoft.SqlServer.Management.Smo.Table>().Select(t => new Run00.SqlCopySqlServer.Table()
 			{
 				Name = t.Name,
 				Database = database.Name,
@@ -35,9 +35,9 @@ namespace Run00.SqlCopySqlServer
 			});
 		}
 
-		private IEnumerable<Run00.SqlCopy.Column> GetColumns(Microsoft.SqlServer.Management.Smo.Table table)
+		private IEnumerable<Run00.SqlCopySqlServer.Column> GetColumns(Microsoft.SqlServer.Management.Smo.Table table)
 		{
-			return table.Columns.Cast<Microsoft.SqlServer.Management.Smo.Column>().Select(c => new Run00.SqlCopy.Column()
+			return table.Columns.Cast<Microsoft.SqlServer.Management.Smo.Column>().Select(c => new Run00.SqlCopySqlServer.Column()
 			{
 				Name = c.Name,
 				Type = GetClrType(c.DataType.SqlDataType),

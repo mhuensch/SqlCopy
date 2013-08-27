@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Run00.SqlCopy
+namespace Run00.SqlCopySqlServer
 {
 	public class Table
 	{

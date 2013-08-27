@@ -9,6 +9,6 @@ namespace Run00.SqlCopy
 	public interface IEntityQueryFilter
 	{
 		Type EntityType { get; }
-		IQueryable Filter(IQueryable query, IDbContext context);
+		IQueryable Filter(IQueryable query, IDbRepository context);
 	}
 }

@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace Run00.SqlCopy
 {
-	public interface ISchemaReader
+	public interface IDbRepository
 	{
-		Database GetSchema(DatabaseInfo location);
+		IQueryable<T> GetEntities<T>() where T : class;
+		IQueryable GetEntities(Type type);
 	}
 }

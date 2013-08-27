@@ -6,7 +6,7 @@ namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
 {
 	public class TestFilter : BaseEntityQueryFilter<IOwnedEntity>
 	{
-		public override IQueryable<IOwnedEntity> Filter(IQueryable<IOwnedEntity> query, IDbContext context)
+		public override IQueryable<IOwnedEntity> Filter(IQueryable<IOwnedEntity> query, IDbRepository context)
 		{
 			var guid = Guid.Parse("63BDDD01-D781-4064-83DE-18A3DDAAF178");
 			var blah = Guid.NewGuid();

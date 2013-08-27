@@ -12,7 +12,7 @@ namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
 		public DbSet<SampleChild> SampleChildren { get; set; }
 	}
 
-	public class Sample : IOwnedEntity
+	public class Sample
 	{
 		public Guid Id { get; set; }
 		public string Value { get; set; }
@@ -20,7 +20,7 @@ namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
 		public Guid OwnerId { get; set; }
 	}
 
-	public class SampleChild : IOwnedEntity
+	public class SampleChild
 	{
 		public Guid Id { get; set; }
 		public string Value { get; set; }
