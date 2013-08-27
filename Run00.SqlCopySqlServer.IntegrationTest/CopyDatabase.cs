@@ -39,7 +39,7 @@ namespace Run00.SqlCopySqlServer.IntegrationTest
 			);
 
 			Locator.Test<IDataCopy>(dc =>
-				dc.CopyData(source, target, new[] { new CopyParameter() { Name = "OwnerId", Value = "63BDDD01-D781-4064-83DE-18A3DDAAF178" } })
+				dc.CopyData(source, target)
 			);
 
 		}

@@ -52,7 +52,6 @@
     <Compile Include="BaseEntityQueryFilter.cs" />
     <Compile Include="Column.cs" />
     <Compile Include="IDataCopy.cs" />
-    <Compile Include="CopyParameter.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="DatabaseInfo.cs" />
     <Compile Include="IDbContext.cs" />

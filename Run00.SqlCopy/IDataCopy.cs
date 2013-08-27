@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-
+﻿
 namespace Run00.SqlCopy
 {
 	public interface IDataCopy
 	{
-		void CopyData(DatabaseInfo source, DatabaseInfo target, IEnumerable<CopyParameter> copyParams);
+		void CopyData(DatabaseInfo source, DatabaseInfo target);
 	}
 }

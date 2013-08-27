@@ -22,7 +22,7 @@ namespace Run00.SqlCopySqlServer
 			_entityFilters = entityFilters;
 		}
 
-		void IDataCopy.CopyData(DatabaseInfo source, DatabaseInfo target, IEnumerable<CopyParameter> copyParams)
+		void IDataCopy.CopyData(DatabaseInfo source, DatabaseInfo target)
 		{
 			var sourceSchema = _provider.GetSchema(source);
 			var sourceTypes = _converter.ToEntityTypes(sourceSchema);
