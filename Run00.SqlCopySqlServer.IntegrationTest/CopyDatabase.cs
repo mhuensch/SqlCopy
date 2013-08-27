@@ -1,14 +1,12 @@
 ﻿using Castle.MicroKernel.Registration;
 using Castle.Windsor;
 using Castle.Windsor.Installer;
+using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Smo;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Win32;
 using Run00.SqlCopy;
 using Run00.SqlCopySqlServer.IntegrationTest.Artifacts;
 using System;
-using System.Data;
-using System.Data.Sql;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -22,7 +20,7 @@ namespace Run00.SqlCopySqlServer.IntegrationTest
 		public void CreateSourceDatabase()
 		{
 			System.Data.Entity.Database.SetInitializer(new SourceContextInitializer());
-			
+
 			//Force database to initialize
 			//var server = new Server();
 			//var connection = new SqlConnectionStringBuilder();
@@ -41,6 +39,12 @@ namespace Run00.SqlCopySqlServer.IntegrationTest
 		[TestMethod]
 		public void TestMethod1()
 		{
+			var conn = new SqlConnection(@"Data Source=(localdb)\v11.0;Initial Catalog=SourceContext;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False");
+			conn.Open();
+			var serConn = new ServerConnection(conn);
+			var ldbServer = new Server(serConn);
+			var db = ldbServer.Databases["SourceContext"];
+
 			var source = new DatabaseLocation("(localdb)\v11.0", "SourceContext");
 			var target = new DatabaseLocation("(localdb)\v11.0", "SourceContextToo");
 
