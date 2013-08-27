@@ -12,9 +12,12 @@ namespace Run00.SqlCopy
 
 		IQueryable IEntityQueryFilter.Filter(IQueryable query, IDbContext context)
 		{
+			if (typeof(T).IsAssignableFrom(query.ElementType))
+				return Filter((IQueryable<T>)query, context);
+
 			return query;
 		}
 
-		public abstract IEnumerable<T> Filter(IQueryable<T> query, IDbContext context);
+		public abstract IQueryable<T> Filter(IQueryable<T> query, IDbContext context);
 	}
 }

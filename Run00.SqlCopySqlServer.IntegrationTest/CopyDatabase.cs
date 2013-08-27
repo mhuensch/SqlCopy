@@ -22,15 +22,7 @@ namespace Run00.SqlCopySqlServer.IntegrationTest
 			System.Data.Entity.Database.SetInitializer(new SourceContextInitializer());
 
 			//Force database to initialize
-			//var server = new Server();
-			//var connection = new SqlConnectionStringBuilder();
-			//connection.DataSource = server.Name;
-			//server.Version.ToString();
-			//if (string.IsNullOrEmpty(server.InstanceName))
-			//	connection.DataSource = connection.DataSource + "\\" + server.InstanceName;
-			//connection.IntegratedSecurity = true;
-			//connection.InitialCatalog = "SourceContext";
-			var context = new SourceContext(@"Data Source=(localdb)\v11.0;Initial Catalog=SourceContext;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False");
+			var context = new SourceContext(_sourceConnection);
 			var samples = context.Samples.Where(s => s.Id == Guid.NewGuid());
 
 			Locator.Initialize();
@@ -39,24 +31,21 @@ namespace Run00.SqlCopySqlServer.IntegrationTest
 		[TestMethod]
 		public void TestMethod1()
 		{
-			var conn = new SqlConnection(@"Data Source=(localdb)\v11.0;Initial Catalog=SourceContext;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False");
-			conn.Open();
-			var serConn = new ServerConnection(conn);
-			var ldbServer = new Server(serConn);
-			var db = ldbServer.Databases["SourceContext"];
-
-			var source = new DatabaseLocation("(localdb)\v11.0", "SourceContext");
-			var target = new DatabaseLocation("(localdb)\v11.0", "SourceContextToo");
+			var source = new DatabaseInfo(_sourceConnection);
+			var target = new DatabaseInfo(_targetConnection);
 
 			Locator.Test<ISchemaCopy>(a =>
 				a.CopySchema(source, target)
 			);
 
 			Locator.Test<IDataCopy>(dc =>
-				dc.CopyData(source, target, new[] { new CopyParameter() { Name = "TenantId", Value = "63BDDD01-D781-4064-83DE-18A3DDAAF178" } })
+				dc.CopyData(source, target, new[] { new CopyParameter() { Name = "OwnerId", Value = "63BDDD01-D781-4064-83DE-18A3DDAAF178" } })
 			);
 
 		}
+
+		public const string _sourceConnection = @"Data Source=(localdb)\v11.0;Initial Catalog=SourceContext;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False";
+		public const string _targetConnection = @"Data Source=(localdb)\v11.0;Initial Catalog=SourceContextToo;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False";
 	}
 
 

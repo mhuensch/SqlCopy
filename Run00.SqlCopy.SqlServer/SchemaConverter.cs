@@ -20,14 +20,15 @@ namespace Run00.SqlCopySqlServer
 		{
 			var result = new List<Type>();
 
-			foreach (var table in database.Tables)
+			foreach (var table in database.Tables.Where(t => t.IsSystemObject == false))
 			{
 				var builder = CreateTypeBuilder(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), table.Name);
 
 				foreach(var column in table.Columns)
 					CreateAutoImplementedProperty(builder, column.Name, column.Type);
 
-				result.Add(builder.CreateType());
+				var type = builder.CreateType();
+				result.Add(type);
 			}
 
 			return result;
@@ -36,6 +37,7 @@ namespace Run00.SqlCopySqlServer
 		private TypeBuilder CreateTypeBuilder(string assemblyName, string moduleName, string typeName)
 		{
 			var interfacesForType = _interfaceLocator.GetInterfacesForEntity(typeName).ToArray();
+			//var interfacesForType = new Type[] {};
 			var typeBuilder = AppDomain
 					.CurrentDomain
 					.DefineDynamicAssembly(new AssemblyName(assemblyName), AssemblyBuilderAccess.Run)
@@ -61,7 +63,7 @@ namespace Run00.SqlCopySqlServer
 
 			// Property getter and setter attributes.
 			MethodAttributes propertyMethodAttributes =
-					MethodAttributes.Public ;
+					MethodAttributes.Public | MethodAttributes.FamANDAssem | MethodAttributes.Final | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.VtableLayoutMask | MethodAttributes.SpecialName;
 
 			// Define the getter method.
 			MethodBuilder getterMethod = builder.DefineMethod(

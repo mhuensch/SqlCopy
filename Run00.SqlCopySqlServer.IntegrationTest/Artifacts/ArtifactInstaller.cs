@@ -15,6 +15,7 @@ namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
 		void IWindsorInstaller.Install(IWindsorContainer container, IConfigurationStore store)
 		{
 			container.Register(Component.For<IEntityInterfaceLocator>().ImplementedBy<EntityInterfaceLocator>());
+			container.Register(Component.For<IEntityQueryFilter>().ImplementedBy<TestFilter>());
 		}
 	}
 }

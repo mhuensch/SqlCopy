@@ -4,8 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Data.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data.Objects;
+using Microsoft.Samples.EntityDataReader;
 
 namespace Run00.SqlCopySqlServer
 {
@@ -19,37 +22,52 @@ namespace Run00.SqlCopySqlServer
 			_entityFilters = entityFilters;
 		}
 
-		void IDataCopy.CopyData(DatabaseLocation source, DatabaseLocation target, IEnumerable<CopyParameter> copyParams)
+		void IDataCopy.CopyData(DatabaseInfo source, DatabaseInfo target, IEnumerable<CopyParameter> copyParams)
 		{
 			var sourceSchema = _provider.GetSchema(source);
 			var sourceTypes = _converter.ToEntityTypes(sourceSchema);
-			var sourceContext = _contextFactory.CreateContext(sourceTypes);
+			var sourceContext = _contextFactory.CreateContext(source, sourceTypes);
+			var cast = typeof(Queryable).GetMethods().Where(m => m.Name == "Cast").First();
 
 			foreach (var type in sourceTypes)
 			{
+				var typeCast = cast.MakeGenericMethod(new Type[] {type});
 				var d = sourceContext.GetEntities(type);
 				foreach (var filter in _entityFilters)
 				{
-					if (type.IsAssignableFrom(filter.EntityType) == false)
+					if (filter.EntityType.IsAssignableFrom(type) == false)
 						continue;
 	
 					d = filter.Filter(d, sourceContext);
+					d = typeCast.Invoke(null, new object[] { d }) as IQueryable;
 				}
 
-				var query = d.ToString();
-				var sourceConnection = default(SqlConnection);
-				var command = new SqlCommand(query, sourceConnection);
-				foreach (var param in copyParams)
-					command.Parameters.Add(new SqlParameter(param.Name, param.Value));
+				//var objQueryType = typeof(ObjectQuery<>);
+				//var genObjQueryType = objQueryType.MakeGenericType(new[] { type });
+				//var prop = objQueryType.GetProperty("Parameters");
 
-				var reader = command.ExecuteReader();
+				using (var sourceConnection = new SqlConnection(source.ConnectionString))
+				{
+					sourceConnection.Open();
 
-				var sourceTable = sourceSchema.Tables.Where(t => t.Name == type.Name).Single();
-				var targetConnection = default(SqlConnection);
-				var copy = new SqlBulkCopy(targetConnection);
-				copy.DestinationTableName = target.Database + "." + sourceTable.Schema + "." + sourceTable.Name;
-				copy.WriteToServer(reader);
-				reader.Close();
+					//var command = new SqlCommand(query, sourceConnection);
+					//foreach (var param in copyParams)
+					//	command.Parameters.Add(new SqlParameter(param.Name, param.Value));
+
+					//var reader = command.ExecuteReader();
+
+					var reader = d.AsDataReader(type);
+					var sourceTable = sourceSchema.Tables.Where(t => t.Name == type.Name).Single();
+					using (var targetConnection = new SqlConnection(target.ConnectionString))
+					{
+						targetConnection.Open();
+						var copy = new SqlBulkCopy(targetConnection);
+						copy.DestinationTableName = target.Database + "." + sourceTable.Schema + "." + sourceTable.Name;
+						copy.WriteToServer(reader);
+						//reader.Close();
+					}
+				}
+
 			}
 		}
 

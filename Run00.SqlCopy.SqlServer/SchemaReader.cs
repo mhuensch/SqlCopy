@@ -11,7 +11,7 @@ namespace Run00.SqlCopySqlServer
 {
 	public class SchemaReader : ISchemaReader
 	{
-		Run00.SqlCopy.Database ISchemaReader.GetSchema(DatabaseLocation location)
+		Run00.SqlCopy.Database ISchemaReader.GetSchema(DatabaseInfo location)
 		{
 			var server = new Server(location.Server);
 			var result = new Run00.SqlCopy.Database()
@@ -30,6 +30,7 @@ namespace Run00.SqlCopySqlServer
 				Name = t.Name,
 				Database = database.Name,
 				Schema = t.Schema,
+				IsSystemObject = t.IsSystemObject,
 				Columns = GetColumns(t)
 			});
 		}

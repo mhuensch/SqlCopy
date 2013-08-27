@@ -8,6 +8,6 @@ namespace Run00.SqlCopy
 {
 	public interface ISchemaReader
 	{
-		Database GetSchema(DatabaseLocation location);
+		Database GetSchema(DatabaseInfo location);
 	}
 }

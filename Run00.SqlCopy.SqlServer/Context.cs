@@ -10,7 +10,7 @@ namespace Run00.SqlCopySqlServer
 {
 	public class Context : DynamicDbContext, IDbContext
 	{
-		public Context(IEnumerable<Type> entityTypes) : base(entityTypes) { }
+		public Context(DatabaseInfo info, IEnumerable<Type> entityTypes) : base(info, entityTypes) { }
 
 		IQueryable<T> IDbContext.GetEntities<T>()
 		{

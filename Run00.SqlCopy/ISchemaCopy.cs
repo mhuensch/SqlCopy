@@ -8,6 +8,6 @@ namespace Run00.SqlCopy
 {
 	public interface ISchemaCopy
 	{
-		void CopySchema(DatabaseLocation source, DatabaseLocation target);
+		void CopySchema(DatabaseInfo source, DatabaseInfo target);
 	}
 }

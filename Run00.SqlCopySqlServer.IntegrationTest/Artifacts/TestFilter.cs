@@ -1,17 +1,16 @@
 ﻿using Run00.SqlCopy;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Run00.SqlCopySqlServer.IntegrationTest
+namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
 {
-	public class TestFilter<T> : BaseEntityQueryFilter<T>
+	public class TestFilter : BaseEntityQueryFilter<IOwnedEntity>
 	{
-		public override IEnumerable<T> Filter(IQueryable<T> query, IDbContext context)
+		public override IQueryable<IOwnedEntity> Filter(IQueryable<IOwnedEntity> query, IDbContext context)
 		{
-			return query;
+			var guid = Guid.Parse("63BDDD01-D781-4064-83DE-18A3DDAAF178");
+			var result = query.Where(o => o.OwnerId == guid);
+			return result;
 		}
 	}
 }

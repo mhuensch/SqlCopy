@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Run00.SqlCopy;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -9,17 +10,16 @@ namespace Run00.DynamicEf
 {
 	public class DynamicDbContext : DbContext
 	{
-		public DynamicDbContext(IEnumerable<Type> entityTypes)
+		public DynamicDbContext(DatabaseInfo info, IEnumerable<Type> entityTypes) : base(info.ConnectionString)
 		{
 			_entityTypes = entityTypes;
 		}
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder)
 		{
+			base.OnModelCreating(modelBuilder);
 			foreach (var entityType in _entityTypes)
 				AddEntityType(modelBuilder, entityType);
-
-			base.OnModelCreating(modelBuilder);
 		}
 
 		private void AddEntityType(DbModelBuilder modelBuilder, Type entityType)

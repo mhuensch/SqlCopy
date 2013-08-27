@@ -10,6 +10,6 @@ namespace Run00.SqlCopySqlServer
 {
 	public interface IContextFactory
 	{
-		IDbContext CreateContext(IEnumerable<Type> entityTypes);
+		IDbContext CreateContext(DatabaseInfo info, IEnumerable<Type> entityTypes);
 	}
 }
