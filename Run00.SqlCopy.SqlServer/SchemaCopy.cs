@@ -1,11 +1,10 @@
-﻿using Microsoft.SqlServer.Management.Smo;
+﻿using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlServer.Management.Smo;
 using Run00.SqlCopy;
-using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Collections.Specialized;
+using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Run00.SqlCopySqlServer
 {
@@ -15,7 +14,10 @@ namespace Run00.SqlCopySqlServer
 		{
 			DropTargetDatabseIfExists(target);
 
-			var server = new Server(source.Server);
+			var connection = new SqlConnectionStringBuilder();
+			connection.DataSource = source.Server;
+			connection.InitialCatalog = source.Database;
+			var server = new Server(new ServerConnection(new SqlConnection(connection.ConnectionString)));
 			var transfer = new Transfer(server.Databases[source.Database]);
 
 			transfer.DestinationServer = target.Server;
@@ -41,16 +43,24 @@ namespace Run00.SqlCopySqlServer
 			MapDatabaseFiles(transfer.DatabaseFileMappings, dataFiles, source.Database, target.Database);
 
 			var logFiles = server.Databases[source.Database].LogFiles.Cast<LogFile>().Select(f => f.FileName);
-			MapDatabaseFiles(transfer.DatabaseFileMappings, logFiles, source.Database, target.Database);			
+			MapDatabaseFiles(transfer.DatabaseFileMappings, logFiles, source.Database, target.Database);
 
 			transfer.TransferData();
 		}
 
 		private static void DropTargetDatabseIfExists(DatabaseLocation location)
 		{
-			var server = new Server(location.Server);
+			var connection = new SqlConnectionStringBuilder();
+			connection.DataSource = location.Server;
+			connection.InitialCatalog = location.Database;
+			connection.IntegratedSecurity = true;
+
+			var server = new Server(new ServerConnection(new SqlConnection("Data Source=(localdb)\v11.0;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False")));
+			var files = new StringCollection();
+			files.Add(@"C:\Users\MediaAdmin\SourceContext.mdf");
+			server.AttachDatabase("SourceContext", files);
 			var db = server.Databases[location.Database];
-			
+
 			if (db == null)
 				return;
 
