@@ -52,7 +52,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Context.cs" />
     <Compile Include="DbRepositoryFactory.cs" />
     <Compile Include="DbRepository.cs" />
     <Compile Include="DynamicDbContext.cs" />
