@@ -30,19 +30,18 @@
 
 
 
-namespace Microsoft.Samples.EntityDataReader
+namespace Run00.SqlCopyData
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Linq;
 	using System.Data;
-	using System.Reflection;
 	using System.Data.Common;
-	using System.Data.Objects.DataClasses;
 	using System.Data.Metadata.Edm;
 	using System.Data.Objects;
+	using System.Data.Objects.DataClasses;
+	using System.Linq;
 	using System.Linq.Expressions;
-	using System.Collections;
+	using System.Reflection;
 
 
 	/// <summary>
@@ -80,121 +79,271 @@ namespace Microsoft.Samples.EntityDataReader
 	/// <typeparam name="T"></typeparam>
 	public sealed class EntityDataReader<T> : DbDataReader, IDataReader
 	{
-
-		readonly IEnumerator<T> enumerator;
-		readonly EntityDataReaderOptions options;
-
-		T current;
-		bool closed = false;
-
-		static List<Attribute> scalarAttributes;
-		static List<Attribute> scalarAttributesPlusRelatedObjectScalarAttributes;
-		static List<Attribute> scalarAttributesPlusRelatedObjectKeyAttributes;
-
-		readonly List<Attribute> attributes;
-
-		#region Attribute inner type
-		private class Attribute
+		public EntityDataReader(IQueryable<T> col)
 		{
-			//PropertyInfo propertyInfo;
-			public readonly Type Type;
-			public readonly string FullName;
-			public readonly string Name;
-			public readonly bool IsRelatedAttribute;
+			this.enumerator = col.GetEnumerator();
 
-			readonly Func<T, object> ValueAccessor;
-
-			/// <summary>
-			/// Uses Lamda expressions to create a Func<T,object> that invokes the given property getter.
-			/// The property value will be extracted and cast to type TProperty
-			/// </summary>
-			/// <typeparam name="TObject">The type of the object declaring the property.</typeparam>
-			/// <typeparam name="TProperty">The type to cast the property value to</typeparam>
-			/// <param name="pi">PropertyInfo pointing to the property to wrap</param>
-			/// <returns></returns>
-			public static Func<TObject, TProperty> MakePropertyAccessor<TObject, TProperty>(PropertyInfo pi)
+			//done without a lock, so we risk running twice
+			if (scalarAttributes == null)
 			{
-				ParameterExpression objParam = Expression.Parameter(typeof(TObject), "obj");
-				MemberExpression typedAccessor = Expression.PropertyOrField(objParam, pi.Name);
-				UnaryExpression castToObject = Expression.Convert(typedAccessor, typeof(object));
-				LambdaExpression lambdaExpr = Expression.Lambda<Func<TObject, TProperty>>(castToObject, objParam);
-
-				return (Func<TObject, TProperty>)lambdaExpr.Compile();
+				scalarAttributes = DiscoverScalarAttributes(typeof(T));
+			}
+			if (scalarAttributesPlusRelatedObjectScalarAttributes == null)
+			{
+				var atts = DiscoverRelatedObjectScalarAttributes(typeof(T));
+				scalarAttributesPlusRelatedObjectScalarAttributes = atts.Concat(scalarAttributes).ToList();
 			}
 
+			attributes = scalarAttributesPlusRelatedObjectScalarAttributes;
 
-			public static Func<TObject, TProperty> MakeRelatedPropertyAccessor<TObject, TProperty>(PropertyInfo pi, PropertyInfo pi2)
+
+		}
+
+		public override DataTable GetSchemaTable()
+		{
+			DataSet s = new DataSet();
+			s.Locale = System.Globalization.CultureInfo.CurrentCulture;
+			s.ReadXmlSchema(new System.IO.StringReader(shemaTableSchema));
+			DataTable t = s.Tables[0];
+			for (int i = 0; i < this.FieldCount; i++)
 			{
+				DataRow row = t.NewRow();
+				row["ColumnName"] = this.GetName(i);
+				row["ColumnOrdinal"] = i;
 
-				Func<TObject, object> getRelatedObject;
+				Type type = this.GetFieldType(i);
+				if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(System.Nullable<int>).GetGenericTypeDefinition())
 				{
-					// expression like:
-					//    return (object)t.SomeProp;
-					ParameterExpression typedParam = Expression.Parameter(typeof(T), "t");
-					MemberExpression typedAccessor = Expression.PropertyOrField(typedParam, pi.Name);
-					UnaryExpression castToObject = Expression.Convert(typedAccessor, typeof(object));
-					LambdaExpression lambdaExpr = Expression.Lambda<Func<TObject, object>>(castToObject, typedParam);
-					getRelatedObject = (Func<TObject, object>)lambdaExpr.Compile();
+					type = type.GetGenericArguments()[0];
 				}
-
-
-				Func<object, TProperty> getRelatedObjectProperty;
-				{
-
-					// expression like:
-					//    return (object)((PropType)o).RelatedProperty;
-					ParameterExpression objParam = Expression.Parameter(typeof(object), "o");
-					UnaryExpression typedParam = Expression.Convert(objParam, pi.PropertyType);
-					MemberExpression typedAccessor = Expression.PropertyOrField(typedParam, pi2.Name);
-					UnaryExpression castToObject = Expression.Convert(typedAccessor, typeof(TProperty));
-					LambdaExpression lambdaExpr = Expression.Lambda<Func<object, TProperty>>(castToObject, objParam);
-					getRelatedObjectProperty = (Func<object, TProperty>)lambdaExpr.Compile();
-				}
-
-				Func<TObject, TProperty> f = (TObject t) =>
-				{
-					object o = getRelatedObject(t);
-					if (o == null) return default(TProperty);
-					return getRelatedObjectProperty(o);
-				};
-
-				return f;
+				row["DataType"] = this.GetFieldType(i);
+				row["DataTypeName"] = this.GetDataTypeName(i);
+				row["ColumnSize"] = -1;
+				t.Rows.Add(row);
 			}
+			return t;
 
-			public Attribute(PropertyInfo pi)
+		}
+
+		public override void Close()
+		{
+			closed = true;
+		}
+
+		public override int Depth
+		{
+			get { return 1; }
+		}
+
+		public override bool IsClosed
+		{
+			get { return closed; }
+		}
+
+		public override bool NextResult()
+		{
+			return false;
+		}
+
+		public override bool Read()
+		{
+			bool rv = enumerator.MoveNext();
+			if (rv)
 			{
-				this.FullName = pi.DeclaringType.Name + "_" + pi.Name;
-				this.Name = pi.Name;
-				Type = pi.PropertyType;
-				IsRelatedAttribute = false;
-
-				ValueAccessor = MakePropertyAccessor<T, object>(pi);
+				current = enumerator.Current;
+				entitiesRead += 1;
 			}
+			return rv;
+		}
 
-			public Attribute(string fullName, string name, Type type, Func<T, object> getValue, bool isRelatedAttribute)
-			{
-				this.FullName = fullName;
-				this.Name = name;
-				this.Type = type;
-				this.ValueAccessor = getValue;
-				this.IsRelatedAttribute = isRelatedAttribute;
-			}
+		public override int RecordsAffected
+		{
+			get { return -1; }
+		}
 
-			public object GetValue(T target)
+		protected override void Dispose(bool disposing)
+		{
+			Close();
+			base.Dispose(disposing);
+		}
+
+		public override int FieldCount
+		{
+			get
 			{
-				return ValueAccessor(target);
+				return attributes.Count;
 			}
 		}
-		#endregion
 
-		#region "Scalar Types"
+		public override bool GetBoolean(int i)
+		{
+			return GetValue<bool>(i);
+		}
 
-		static bool IsScalarType(Type t)
+		public override byte GetByte(int i)
+		{
+			return GetValue<byte>(i);
+		}
+
+		public override long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length)
+		{
+
+			var buf = GetValue<byte[]>(i);
+			int bytes = Math.Min(length, buf.Length - (int)fieldOffset);
+			Buffer.BlockCopy(buf, (int)fieldOffset, buffer, bufferoffset, bytes);
+			return bytes;
+
+		}
+
+		public override char GetChar(int i)
+		{
+			return GetValue<char>(i);
+		}
+
+		public override long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length)
+		{
+			//throw new NotImplementedException();
+			string s = GetValue<string>(i);
+			int chars = Math.Min(length, s.Length - (int)fieldoffset);
+			s.CopyTo((int)fieldoffset, buffer, bufferoffset, chars);
+
+			return chars;
+		}
+
+		public override string GetDataTypeName(int i)
+		{
+			return attributes[i].Type.Name;
+		}
+
+		public override DateTime GetDateTime(int i)
+		{
+			return GetValue<DateTime>(i);
+		}
+
+		public override decimal GetDecimal(int i)
+		{
+			return GetValue<decimal>(i);
+		}
+
+		public override double GetDouble(int i)
+		{
+			return GetValue<double>(i);
+		}
+
+		public override Type GetFieldType(int i)
+		{
+			Type t = attributes[i].Type;
+			return t;
+		}
+
+		public override float GetFloat(int i)
+		{
+			return GetValue<float>(i);
+		}
+
+		public override Guid GetGuid(int i)
+		{
+			return GetValue<Guid>(i);
+		}
+
+		public override short GetInt16(int i)
+		{
+			return GetValue<short>(i);
+		}
+
+		public override int GetInt32(int i)
+		{
+			return GetValue<int>(i);
+		}
+
+		public override long GetInt64(int i)
+		{
+			return GetValue<long>(i);
+		}
+
+		public override string GetName(int i)
+		{
+			Attribute a = attributes[i];
+			return a.Name;
+		}
+
+		public override int GetOrdinal(string name)
+		{
+			for (int i = 0; i < attributes.Count; i++)
+			{
+				var a = attributes[i];
+
+				if (!a.IsRelatedAttribute && a.Name == name)
+				{
+					return i;
+				}
+
+
+			}
+			return -1;
+		}
+
+		public override string GetString(int i)
+		{
+			return GetValue<string>(i);
+		}
+
+		public override int GetValues(object[] values)
+		{
+			for (int i = 0; i < attributes.Count; i++)
+			{
+				values[i] = GetValue(i);
+			}
+			return attributes.Count;
+		}
+
+		public override object GetValue(int i)
+		{
+			object o = GetValue<object>(i);
+			return o;
+		}
+
+		public override bool IsDBNull(int i)
+		{
+			object o = GetValue<object>(i);
+			return (o == null);
+		}
+
+		public override object this[string name]
+		{
+			get { return GetValue(GetOrdinal(name)); }
+		}
+
+		public override object this[int i]
+		{
+			get { return GetValue(i); }
+		}
+
+		public override System.Collections.IEnumerator GetEnumerator()
+		{
+			return this.enumerator;
+		}
+
+		public override bool HasRows
+		{
+			get { throw new NotSupportedException(); }
+		}
+
+		private TField GetValue<TField>(int i)
+		{
+			TField val = (TField)attributes[i].GetValue(current);
+			return val;
+		}
+
+
+		private static bool IsScalarType(Type t)
 		{
 			return scalarTypes.Contains(t);
 		}
-		static readonly HashSet<Type> scalarTypes = LoadScalarTypes();
-		static HashSet<Type> LoadScalarTypes()
+
+		private static readonly HashSet<Type> scalarTypes = LoadScalarTypes();
+
+		private static HashSet<Type> LoadScalarTypes()
 		{
 			HashSet<Type> set = new HashSet<Type>() 
 															{ 
@@ -231,63 +380,8 @@ namespace Microsoft.Samples.EntityDataReader
 			return set;
 
 		}
-		#endregion
 
-		#region Constructors
-
-		public EntityDataReader(IQueryable col)
-			: this((IQueryable<T>)col, EntityDataReaderOptions.Default, null) { }
-
-		public EntityDataReader(IQueryable<T> col)
-			: this(col, EntityDataReaderOptions.Default, null) { }
-
-		public EntityDataReader(IQueryable<T> col, EntityDataReaderOptions options)
-			: this(col, options, null) { }
-
-		public EntityDataReader(IQueryable<T> col, EntityDataReaderOptions options, ObjectContext objectContext)
-		{
-			this.enumerator = col.GetEnumerator();
-			this.options = options;
-
-			if (options.RecreateForeignKeysForEntityFrameworkEntities && objectContext == null)
-			{
-				throw new ArgumentException("If RecreateForeignKeysForEntityFrameworkEntities=true then objectContext is required");
-			}
-
-			//done without a lock, so we risk running twice
-			if (scalarAttributes == null)
-			{
-				scalarAttributes = DiscoverScalarAttributes(typeof(T));
-			}
-			if (options.FlattenRelatedObjects && scalarAttributesPlusRelatedObjectScalarAttributes == null)
-			{
-				var atts = DiscoverRelatedObjectScalarAttributes(typeof(T));
-				scalarAttributesPlusRelatedObjectScalarAttributes = atts.Concat(scalarAttributes).ToList();
-			}
-			if (options.RecreateForeignKeysForEntityFrameworkEntities && scalarAttributesPlusRelatedObjectKeyAttributes == null)
-			{
-				var atts = DiscoverRelatedObjectKeyAttributes(typeof(T), objectContext);
-				scalarAttributesPlusRelatedObjectKeyAttributes = atts.Concat(scalarAttributes).ToList();
-			}
-
-			if (options.FlattenRelatedObjects)
-			{
-				attributes = scalarAttributesPlusRelatedObjectScalarAttributes;
-			}
-			else if (objectContext != null)
-			{
-				attributes = scalarAttributesPlusRelatedObjectKeyAttributes;
-			}
-			else
-			{
-				attributes = scalarAttributes;
-			}
-
-
-		}
-
-
-		static List<Attribute> DiscoverScalarAttributes(Type thisType)
+		private static List<Attribute> DiscoverScalarAttributes(Type thisType)
 		{
 
 			//Not a collection of entities, just an IEnumerable<String> or other scalar type.
@@ -335,7 +429,8 @@ namespace Microsoft.Samples.EntityDataReader
 			return allProperties.Select(p => new Attribute(p)).ToList();
 
 		}
-		static List<Attribute> DiscoverRelatedObjectKeyAttributes(Type thisType, ObjectContext objectContext)
+
+		private static List<Attribute> DiscoverRelatedObjectKeyAttributes(Type thisType, ObjectContext objectContext)
 		{
 
 			var attributeList = new SortedList<string, Attribute>();
@@ -435,7 +530,8 @@ namespace Microsoft.Samples.EntityDataReader
 			return attributeList.Values.ToList();
 
 		}
-		static List<Attribute> DiscoverRelatedObjectScalarAttributes(Type thisType)
+
+		private static List<Attribute> DiscoverRelatedObjectScalarAttributes(Type thisType)
 		{
 
 			var atts = new List<Attribute>();
@@ -470,24 +566,122 @@ namespace Microsoft.Samples.EntityDataReader
 
 		}
 
+		private static Type nullable_T = typeof(System.Nullable<int>).GetGenericTypeDefinition();
 
-
-		#endregion
-
-		#region Utility Methods
-		static Type nullable_T = typeof(System.Nullable<int>).GetGenericTypeDefinition();
-		static bool IsNullable(Type t)
+		private static bool IsNullable(Type t)
 		{
 			return (t.IsGenericType
 					&& t.GetGenericTypeDefinition() == nullable_T);
 		}
-		static Type StripNullableType(Type t)
+
+		private static Type StripNullableType(Type t)
 		{
 			return t.GetGenericArguments()[0];
 		}
-		#endregion
 
-		#region GetSchemaTable
+
+		private int entitiesRead = 0;
+		private readonly IEnumerator<T> enumerator;
+		private T current;
+		private bool closed = false;
+		private static List<Attribute> scalarAttributes;
+		private static List<Attribute> scalarAttributesPlusRelatedObjectScalarAttributes;
+		private readonly List<Attribute> attributes;
+
+
+
+
+		private class Attribute
+		{
+			//PropertyInfo propertyInfo;
+			public readonly Type Type;
+			public readonly string FullName;
+			public readonly string Name;
+			public readonly bool IsRelatedAttribute;
+
+			readonly Func<T, object> ValueAccessor;
+
+			/// <summary>
+			/// Uses Lamda expressions to create a Func<T,object> that invokes the given property getter.
+			/// The property value will be extracted and cast to type TProperty
+			/// </summary>
+			/// <typeparam name="TObject">The type of the object declaring the property.</typeparam>
+			/// <typeparam name="TProperty">The type to cast the property value to</typeparam>
+			/// <param name="pi">PropertyInfo pointing to the property to wrap</param>
+			/// <returns></returns>
+			public static Func<TObject, TProperty> MakePropertyAccessor<TObject, TProperty>(PropertyInfo pi)
+			{
+				ParameterExpression objParam = Expression.Parameter(typeof(TObject), "obj");
+				MemberExpression typedAccessor = Expression.PropertyOrField(objParam, pi.Name);
+				UnaryExpression castToObject = Expression.Convert(typedAccessor, typeof(object));
+				LambdaExpression lambdaExpr = Expression.Lambda<Func<TObject, TProperty>>(castToObject, objParam);
+
+				return (Func<TObject, TProperty>)lambdaExpr.Compile();
+			}
+
+
+			public static Func<TObject, TProperty> MakeRelatedPropertyAccessor<TObject, TProperty>(PropertyInfo pi, PropertyInfo pi2)
+			{
+
+				Func<TObject, object> getRelatedObject;
+				{
+					// expression like:
+					//    return (object)t.SomeProp;
+					ParameterExpression typedParam = Expression.Parameter(typeof(T), "t");
+					MemberExpression typedAccessor = Expression.PropertyOrField(typedParam, pi.Name);
+					UnaryExpression castToObject = Expression.Convert(typedAccessor, typeof(object));
+					LambdaExpression lambdaExpr = Expression.Lambda<Func<TObject, object>>(castToObject, typedParam);
+					getRelatedObject = (Func<TObject, object>)lambdaExpr.Compile();
+				}
+
+
+				Func<object, TProperty> getRelatedObjectProperty;
+				{
+
+					// expression like:
+					//    return (object)((PropType)o).RelatedProperty;
+					ParameterExpression objParam = Expression.Parameter(typeof(object), "o");
+					UnaryExpression typedParam = Expression.Convert(objParam, pi.PropertyType);
+					MemberExpression typedAccessor = Expression.PropertyOrField(typedParam, pi2.Name);
+					UnaryExpression castToObject = Expression.Convert(typedAccessor, typeof(TProperty));
+					LambdaExpression lambdaExpr = Expression.Lambda<Func<object, TProperty>>(castToObject, objParam);
+					getRelatedObjectProperty = (Func<object, TProperty>)lambdaExpr.Compile();
+				}
+
+				Func<TObject, TProperty> f = (TObject t) =>
+				{
+					object o = getRelatedObject(t);
+					if (o == null) return default(TProperty);
+					return getRelatedObjectProperty(o);
+				};
+
+				return f;
+			}
+
+			public Attribute(PropertyInfo pi)
+			{
+				this.FullName = pi.DeclaringType.Name + "_" + pi.Name;
+				this.Name = pi.Name;
+				Type = pi.PropertyType;
+				IsRelatedAttribute = false;
+
+				ValueAccessor = MakePropertyAccessor<T, object>(pi);
+			}
+
+			public Attribute(string fullName, string name, Type type, Func<T, object> getValue, bool isRelatedAttribute)
+			{
+				this.FullName = fullName;
+				this.Name = name;
+				this.Type = type;
+				this.ValueAccessor = getValue;
+				this.IsRelatedAttribute = isRelatedAttribute;
+			}
+
+			public object GetValue(T target)
+			{
+				return ValueAccessor(target);
+			}
+		}
 
 
 		const string shemaTableSchema = @"<?xml version=""1.0"" standalone=""yes""?>
@@ -535,498 +729,5 @@ namespace Microsoft.Samples.EntityDataReader
 		</xs:complexType>
 	</xs:element>
 </xs:schema>";
-		public override DataTable GetSchemaTable()
-		{
-			DataSet s = new DataSet();
-			s.Locale = System.Globalization.CultureInfo.CurrentCulture;
-			s.ReadXmlSchema(new System.IO.StringReader(shemaTableSchema));
-			DataTable t = s.Tables[0];
-			for (int i = 0; i < this.FieldCount; i++)
-			{
-				DataRow row = t.NewRow();
-				row["ColumnName"] = this.GetName(i);
-				row["ColumnOrdinal"] = i;
-
-				Type type = this.GetFieldType(i);
-				if (type.IsGenericType
-					&& type.GetGenericTypeDefinition() == typeof(System.Nullable<int>).GetGenericTypeDefinition())
-				{
-					type = type.GetGenericArguments()[0];
-				}
-				row["DataType"] = this.GetFieldType(i);
-				row["DataTypeName"] = this.GetDataTypeName(i);
-				row["ColumnSize"] = -1;
-				t.Rows.Add(row);
-			}
-			return t;
-
-		}
-		#endregion
-
-		#region IDataReader Members
-
-		public override void Close()
-		{
-			closed = true;
-		}
-
-		public override int Depth
-		{
-			get { return 1; }
-		}
-
-
-		public override bool IsClosed
-		{
-			get { return closed; }
-		}
-
-		public override bool NextResult()
-		{
-			return false;
-		}
-
-		int entitiesRead = 0;
-		public override bool Read()
-		{
-			bool rv = enumerator.MoveNext();
-			if (rv)
-			{
-				current = enumerator.Current;
-				entitiesRead += 1;
-			}
-			return rv;
-		}
-
-		public override int RecordsAffected
-		{
-			get { return -1; }
-		}
-
-		#endregion
-
-		#region IDisposable Members
-
-		protected override void Dispose(bool disposing)
-		{
-			Close();
-			base.Dispose(disposing);
-		}
-
-		#endregion
-
-		#region IDataRecord Members
-
-		public override int FieldCount
-		{
-			get
-			{
-				return attributes.Count;
-			}
-		}
-
-		TField GetValue<TField>(int i)
-		{
-			TField val = (TField)attributes[i].GetValue(current);
-			return val;
-		}
-		public override bool GetBoolean(int i)
-		{
-			return GetValue<bool>(i);
-		}
-
-		public override byte GetByte(int i)
-		{
-			return GetValue<byte>(i);
-		}
-
-		public override long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length)
-		{
-
-			var buf = GetValue<byte[]>(i);
-			int bytes = Math.Min(length, buf.Length - (int)fieldOffset);
-			Buffer.BlockCopy(buf, (int)fieldOffset, buffer, bufferoffset, bytes);
-			return bytes;
-
-		}
-
-		public override char GetChar(int i)
-		{
-			return GetValue<char>(i);
-		}
-
-		public override long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length)
-		{
-			//throw new NotImplementedException();
-			string s = GetValue<string>(i);
-			int chars = Math.Min(length, s.Length - (int)fieldoffset);
-			s.CopyTo((int)fieldoffset, buffer, bufferoffset, chars);
-
-			return chars;
-		}
-
-		//public override DbDataReader GetData(int i)
-		//{
-		//  throw new NotImplementedException();
-		//}
-
-		public override string GetDataTypeName(int i)
-		{
-			return attributes[i].Type.Name;
-		}
-
-		public override DateTime GetDateTime(int i)
-		{
-			return GetValue<DateTime>(i);
-		}
-
-		public override decimal GetDecimal(int i)
-		{
-			return GetValue<decimal>(i);
-		}
-
-		public override double GetDouble(int i)
-		{
-			return GetValue<double>(i);
-		}
-
-		public override Type GetFieldType(int i)
-		{
-			Type t = attributes[i].Type;
-			if (!options.ExposeNullableTypes && IsNullable(t))
-			{
-				return StripNullableType(t);
-			}
-			return t;
-		}
-
-		public override float GetFloat(int i)
-		{
-			return GetValue<float>(i);
-		}
-
-		public override Guid GetGuid(int i)
-		{
-			return GetValue<Guid>(i);
-		}
-
-		public override short GetInt16(int i)
-		{
-			return GetValue<short>(i);
-		}
-
-		public override int GetInt32(int i)
-		{
-			return GetValue<int>(i);
-		}
-
-		public override long GetInt64(int i)
-		{
-			return GetValue<long>(i);
-		}
-
-		public override string GetName(int i)
-		{
-			Attribute a = attributes[i];
-			if (a.IsRelatedAttribute && options.PrefixRelatedObjectColumns)
-			{
-				return a.FullName;
-			}
-			return a.Name;
-		}
-
-		public override int GetOrdinal(string name)
-		{
-			for (int i = 0; i < attributes.Count; i++)
-			{
-				var a = attributes[i];
-
-				if (!a.IsRelatedAttribute && a.Name == name)
-				{
-					return i;
-				}
-
-				if (options.PrefixRelatedObjectColumns && a.IsRelatedAttribute && a.FullName == name)
-				{
-					return i;
-				}
-
-				if (!options.PrefixRelatedObjectColumns && a.IsRelatedAttribute && a.Name == name)
-				{
-					return i;
-				}
-
-
-			}
-			return -1;
-		}
-
-		public override string GetString(int i)
-		{
-			return GetValue<string>(i);
-		}
-
-
-
-		public override int GetValues(object[] values)
-		{
-			for (int i = 0; i < attributes.Count; i++)
-			{
-				values[i] = GetValue(i);
-			}
-			return attributes.Count;
-		}
-
-
-
-		public override object GetValue(int i)
-		{
-			object o = GetValue<object>(i);
-			if (!options.ExposeNullableTypes && o == null)
-			{
-				return DBNull.Value;
-			}
-			return o;
-		}
-
-		public override bool IsDBNull(int i)
-		{
-			object o = GetValue<object>(i);
-			return (o == null);
-		}
-
-		public override object this[string name]
-		{
-			get { return GetValue(GetOrdinal(name)); }
-		}
-
-		public override object this[int i]
-		{
-			get { return GetValue(i); }
-		}
-
-		#endregion
-
-		#region DbDataReader Members
-
-
-
-		public override System.Collections.IEnumerator GetEnumerator()
-		{
-			return this.enumerator;
-		}
-
-		public override bool HasRows
-		{
-			get { throw new NotSupportedException(); }
-		}
-		#endregion
-
-	}
-
-	public class EntityDataReaderOptions
-	{
-		public static EntityDataReaderOptions Default
-		{
-			get { return new EntityDataReaderOptions(true, false, true, false); }
-		}
-
-		public EntityDataReaderOptions(
-			bool exposeNullableTypes,
-			bool flattenRelatedObjects,
-			bool prefixRelatedObjectColumns,
-			bool recreateForeignKeysForEntityFrameworkEntities)
-		{
-			this.ExposeNullableTypes = exposeNullableTypes;
-			this.FlattenRelatedObjects = flattenRelatedObjects;
-			this.PrefixRelatedObjectColumns = prefixRelatedObjectColumns;
-			this.RecreateForeignKeysForEntityFrameworkEntities = recreateForeignKeysForEntityFrameworkEntities;
-		}
-
-		/// <summary>
-		/// If true nullable value types are returned directly by the DataReader.
-		/// If false, the DataReader will expose non-nullable value types and return DbNull.Value
-		/// for null values.  
-		/// When loading a DataTable this option must be set to True, since DataTable does not support
-		/// nullable types.
-		/// </summary>
-		public bool ExposeNullableTypes { get; set; }
-
-		/// <summary>
-		/// If True then the DataReader will project scalar properties from related objects in addition
-		/// to scalar properties from the main object.  This is especially useful for custom projecttions like
-		///         var q = from od in db.SalesOrderDetail
-		///         select new
-		///         {
-		///           od,
-		///           ProductID=od.Product.ProductID,
-		///           ProductName=od.Product.Name
-		///         };
-		/// Related objects assignable to EntityKey, EntityRelation, and IEnumerable are excluded.
-		/// 
-		/// If False, then only scalar properties from teh main object will be projected.         
-		/// </summary>
-		public bool FlattenRelatedObjects { get; set; }
-
-		/// <summary>
-		/// If True columns projected from related objects will have column names prefixed by the
-		/// name of the relating property.  This appies to either from setting FlattenRelatedObjects to True,
-		/// or RecreateForeignKeysForEntityFrameworkEntities to True.
-		/// 
-		/// If False columns will be created for related properties that are not prefixed.  This can lead
-		/// to column name collision.
-		/// </summary>
-		public bool PrefixRelatedObjectColumns { get; set; }
-
-		/// <summary>
-		/// If True the DataReader will create columns for the key properties of related Entities.
-		/// You must pass an ObjectContext and have retrieved the entity with change tracking for this to work.
-		/// </summary>
-		public bool RecreateForeignKeysForEntityFrameworkEntities { get; set; }
-
-	}
-
-	public static class EntityDataReaderExtensions
-	{
-		public static IDataReader AsDataReader(this IQueryable collection, Type type)
-		{
-			var constructor = typeof(EntityDataReader<>).MakeGenericType(new Type[] { type }).GetConstructors().First();
-			if (type.IsDefined(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), false))
-			{
-				var options = EntityDataReaderOptions.Default;
-				options.FlattenRelatedObjects = true;
-				options.PrefixRelatedObjectColumns = false;
-				return constructor.Invoke(new object[] { collection, options }) as IDataReader;
-			}
-
-			return constructor.Invoke(new object[] { collection }) as IDataReader;
-		}
-
-		/// <summary>
-		/// Wraps the IEnumerable in a DbDataReader, having one column for each "scalar" property of the type T.  
-		/// The collection will be enumerated as the client calls IDataReader.Read().
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="collection"></param>
-		/// <returns></returns>
-		public static IDataReader AsDataReader<T>(this IQueryable<T> collection)
-		{
-
-			//For anonymous type projections default to flattening related objects and not prefixing columns
-			//The reason being that if the programmer has taken control of the projection, the default should
-			//be to expose everying in the projection and not mess with the names.
-			if (typeof(T).IsDefined(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), false))
-			{
-				var options = EntityDataReaderOptions.Default;
-				options.FlattenRelatedObjects = true;
-				options.PrefixRelatedObjectColumns = false;
-				return new EntityDataReader<T>(collection, options);
-			}
-			return new EntityDataReader<T>(collection);
-		}
-
-		/// <summary>
-		/// Wraps the IEnumerable in a DbDataReader, having one column for each "scalar" property of the type T.  
-		/// The collection will be enumerated as the client calls IDataReader.Read().
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="collection"></param>
-		/// <returns></returns>
-		public static IDataReader AsDataReader<T>(this IQueryable<T> collection, bool exposeNullableColumns, bool flattenRelatedObjects)
-		{
-			EntityDataReaderOptions options = new EntityDataReaderOptions(exposeNullableColumns, flattenRelatedObjects, true, false);
-
-			return new EntityDataReader<T>(collection, options, null);
-		}
-
-
-		/// <summary>
-		/// Enumerates the collection and copies the data into a DataTable.
-		/// </summary>
-		/// <typeparam name="T">The element type of the collection.</typeparam>
-		/// <param name="collection">The collection to copy to a DataTable</param>
-		/// <returns>A DataTable containing the scalar projection of the collection.</returns>
-		public static DataTable ToDataTable<T>(this IQueryable<T> collection)
-		{
-			DataTable t = new DataTable();
-			t.Locale = System.Globalization.CultureInfo.CurrentCulture;
-			t.TableName = typeof(T).Name;
-			EntityDataReaderOptions options = EntityDataReaderOptions.Default;
-			options.ExposeNullableTypes = false;
-			EntityDataReader<T> dr = new EntityDataReader<T>(collection, options);
-			t.Load(dr);
-			return t;
-		}
-
-		///// <summary>
-		///// Wraps the collection in a DataReader, but also includes columns for the key attributes of related Entities.
-		///// </summary>
-		///// <typeparam name="T">The element type of the collection.</typeparam>
-		///// <param name="collection">A collection to wrap in a DataReader</param>
-		///// <param name="cx">The Entity Framework ObjectContext, used for metadata access</param>
-		///// <returns>A DbDataReader wrapping the collection.</returns>
-		//public static IDataReader AsDataReader<T>(this IQueryable<T> collection, ObjectContext context) where T : EntityObject
-		//{
-		//	EntityDataReaderOptions options = EntityDataReaderOptions.Default;
-		//	options.RecreateForeignKeysForEntityFrameworkEntities = true;
-		//	return new EntityDataReader<T>(collection, options, context);
-		//}
-
-
-
-		///// <summary>
-		///// Wraps the collection in a DataReader, but also includes columns for the key attributes of related Entities.
-		///// </summary>
-		///// <typeparam name="T">The element type of the collectin.</typeparam>
-		///// <param name="collection">A collection to wrap in a DataReader</param>
-		///// <param name="detachObjects">Option to detach each object in the collection from the ObjectContext.  This can reduce memory usage for queries returning large numbers of objects.</param>
-		///// <param name="prefixReladObjectColumns">If True, qualify the related object keys, if False don't</param>
-		///// <returns>A DbDataReader wrapping the collection.</returns>
-		///// <summary>
-		//public static IDataReader AsDataReader<T>(this IQueryable<T> collection, ObjectContext context, bool detachObjects, bool prefixRelatedObjectColumns) where T : EntityObject
-		//{
-		//	EntityDataReaderOptions options = EntityDataReaderOptions.Default;
-		//	options.RecreateForeignKeysForEntityFrameworkEntities = true;
-		//	options.PrefixRelatedObjectColumns = prefixRelatedObjectColumns;
-
-		//	if (detachObjects)
-		//	{
-		//		return new EntityDataReader<T>(collection.DetachAllFrom(context), options, context);
-		//	}
-		//	return new EntityDataReader<T>(collection, options, context);
-		//}
-		//static IEnumerable<T> DetachAllFrom<T>(this IQueryable<T> col, ObjectContext cx)
-		//{
-		//	foreach (var t in col)
-		//	{
-		//		cx.Detach(t);
-		//		yield return t;
-		//	}
-		//}
-
-		///// <summary>
-		///// Enumerates the collection and copies the data into a DataTable, but also includes columns for the key attributes of related Entities.
-		///// </summary>
-		///// <typeparam name="T">The element type of the collection.</typeparam>
-		///// <param name="collection">The collection to copy to a DataTable</param>
-		///// <param name="cx">The Entity Framework ObjectContext, used for metadata access</param>
-		///// <returns>A DataTable containing the scalar projection of the collection.</returns>
-		//public static DataTable ToDataTable<T>(this IQueryable<T> collection, ObjectContext context) where T : EntityObject
-		//{
-		//	DataTable t = new DataTable();
-		//	t.Locale = System.Globalization.CultureInfo.CurrentCulture;
-		//	t.TableName = typeof(T).Name;
-
-		//	EntityDataReaderOptions options = EntityDataReaderOptions.Default;
-		//	options.RecreateForeignKeysForEntityFrameworkEntities = true;
-
-		//	EntityDataReader<T> dr = new EntityDataReader<T>(collection, options, context);
-		//	t.Load(dr);
-		//	return t;
-		//}
-
-
-
-
 	}
 }
