@@ -23,7 +23,7 @@ namespace Run00.SqlCopySqlServer
 
 			foreach (var table in database.Tables.Where(t => t.IsSystemObject == false))
 			{
-				var builder = CreateTypeBuilder(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), table.Name);
+				var builder = CreateTypeBuilder(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), table.Schema + "." + table.Name);
 
 				foreach(var column in table.Columns)
 					CreateAutoImplementedProperty(builder, column.Name, column.Type);

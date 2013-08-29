@@ -2,12 +2,8 @@
 using Castle.MicroKernel.Resolvers.SpecializedResolvers;
 using Castle.Windsor;
 using Castle.Windsor.Installer;
-using Microsoft.SqlServer.Management.Common;
-using Microsoft.SqlServer.Management.Smo;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Run00.SqlCopy;
 using System;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 

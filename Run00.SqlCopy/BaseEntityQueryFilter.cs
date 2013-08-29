@@ -1,23 +1,39 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Run00.SqlCopy
 {
 	public abstract class BaseEntityQueryFilter<T> : IEntityQueryFilter
 	{
+		public abstract IQueryable<T> Filter(IQueryable<T> query, IDbRepository context);
+
 		Type IEntityQueryFilter.EntityType { get { return typeof(T); } }
 
 		IQueryable IEntityQueryFilter.Filter(IQueryable query, IDbRepository context)
 		{
-			if (typeof(T).IsAssignableFrom(query.ElementType))
-				return Filter((IQueryable<T>)query, context);
+			var origElementType = query.ElementType;
 
-			return query;
+			if (typeof(T).IsAssignableFrom(origElementType) == false)
+				return query;
+
+			var result = Filter((IQueryable<T>)query, context);
+			var recastResult = ReCast(result, origElementType);
+			return recastResult;
 		}
 
-		public abstract IQueryable<T> Filter(IQueryable<T> query, IDbRepository context);
+		private static IQueryable ReCast(IQueryable source, Type toType)
+		{
+			if (castMethod == null)
+				castMethod = typeof(Queryable).GetMethod("Cast");
+
+			var typeCast = castMethod.MakeGenericMethod(new Type[] { toType });
+			return typeCast.Invoke(null, new object[] { source }) as IQueryable;
+		}
+
+		private static MethodInfo castMethod;
+
+		
 	}
 }

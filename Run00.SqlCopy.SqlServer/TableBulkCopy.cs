@@ -10,15 +10,15 @@ namespace Run00.SqlCopySqlServer
 {
 	public class TableBulkCopy : ITableBulkCopy
 	{
-		void ITableBulkCopy.Copy(IDbConnection connection, string tableName, IDataReader reader)
+		void ITableBulkCopy.Copy(IDbConnection connection, DataTable data)
 		{
 			var sqlConnection = connection as SqlConnection;
 			if (sqlConnection == null)
 				throw new InvalidOperationException();
 
 			var copy = new SqlBulkCopy(sqlConnection);
-			copy.DestinationTableName = tableName;
-			copy.WriteToServer(reader);
+			copy.DestinationTableName = data.TableName;
+			copy.WriteToServer(data);
 		}
 	}
 }

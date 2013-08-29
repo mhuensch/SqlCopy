@@ -9,6 +9,6 @@ namespace Run00.SqlCopy
 {
 	public interface ITableBulkCopy
 	{
-		void Copy(IDbConnection connection, string tableName, IDataReader reader);
+		void Copy(IDbConnection connection, DataTable data);
 	}
 }
