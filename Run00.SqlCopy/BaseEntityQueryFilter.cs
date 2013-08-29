@@ -7,18 +7,18 @@ namespace Run00.SqlCopy
 {
 	public abstract class BaseEntityQueryFilter<T> : IEntityQueryFilter
 	{
-		public abstract IQueryable<T> Filter(IQueryable<T> query, IDbRepository context);
+		public abstract IQueryable<T> Filter(IQueryable<T> query);
 
 		Type IEntityQueryFilter.EntityType { get { return typeof(T); } }
 
-		IQueryable IEntityQueryFilter.Filter(IQueryable query, IDbRepository context)
+		IQueryable IEntityQueryFilter.Filter(IQueryable query)
 		{
 			var origElementType = query.ElementType;
 
 			if (typeof(T).IsAssignableFrom(origElementType) == false)
 				return query;
 
-			var result = Filter((IQueryable<T>)query, context);
+			var result = Filter((IQueryable<T>)query);
 			var recastResult = ReCast(result, origElementType);
 			return recastResult;
 		}

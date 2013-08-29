@@ -81,6 +81,9 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Artifacts\ArtifactInstaller.cs" />
+    <Compile Include="Artifacts\IChildOwners.cs" />
+    <Compile Include="Artifacts\TestFilter2.cs" />
+    <Compile Include="Artifacts\IChildOwnedEntity.cs" />
     <Compile Include="Artifacts\EntityInterfaceLocator.cs" />
     <Compile Include="Artifacts\IOwnedEntity.cs" />
     <Compile Include="Artifacts\SourceContext.cs" />

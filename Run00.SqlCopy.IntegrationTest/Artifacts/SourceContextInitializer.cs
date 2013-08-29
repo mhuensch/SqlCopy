@@ -18,8 +18,13 @@ namespace Run00.SqlCopy.IntegrationTest
 			};
 			context.Samples.Add(sampleOne);
 
+			var sampleTwoGrandChildOne = new SampleGrandChild() { Id = Guid.Parse("{4F2AEF1C-71F7-4814-9A39-4783BFADB467}"), Value = "SampleGrandChildOne" };
+			var sampleTwoGrandChildTwo = new SampleGrandChild() { Id = Guid.Parse("{5C35C308-06D5-4316-BA57-F276D8DA1A56}"), Value = "SampleGrandChildTwo" };
+
 			var sampleTwoChildOne = new SampleChild() { Id = Guid.Parse("{57691FEA-FDC2-482A-956D-F80DA1F65E85}"), Value = "ChildSampleOne", OwnerId = Guid.Parse("{CC52BE36-1EA0-4F4C-A506-C9ED399B8561}") };
+			sampleTwoChildOne.Children = new[] { sampleTwoGrandChildOne };
 			var sampleTwoChildTwo = new SampleChild() { Id = Guid.Parse("{D3D1C39E-5142-483C-8117-801382F036DE}"), Value = "ChildSampleTwo", OwnerId = Guid.Parse("{CC52BE36-1EA0-4F4C-A506-C9ED399B8561}") };
+			sampleTwoChildTwo.Children = new[] { sampleTwoGrandChildTwo };
 			var sampleTwo = new Sample()
 			{
 				Id = Guid.Parse("2C039ED6-F402-4203-B8A5-6D3B8D3F24F6"),

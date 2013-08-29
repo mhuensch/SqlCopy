@@ -51,9 +51,12 @@ namespace Run00.SqlCopyData
 			foreach (var type in sourceEntityTypes)
 			{
 				var entities = sourceRepository.GetEntities(type);
+
+				//if (_entityFilters.Any(f => f.EntityType.IsAssignableFrom(type)) == false)
+				//	continue;
 				
 				foreach (var filter in _entityFilters)
-					entities = filter.Filter(entities, sourceRepository);
+					entities = filter.Filter(entities);
 
 				result.Add(entities);
 			}

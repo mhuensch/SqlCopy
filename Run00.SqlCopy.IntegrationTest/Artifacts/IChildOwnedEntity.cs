@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Run00.SqlCopy
+namespace Run00.SqlCopy.IntegrationTest
 {
-	public interface IEntityQueryFilter
+	public interface IChildOwnedEntity
 	{
-		Type EntityType { get; }
-		IQueryable Filter(IQueryable query);
+		Guid Parent_Id { get; set; }
 	}
 }

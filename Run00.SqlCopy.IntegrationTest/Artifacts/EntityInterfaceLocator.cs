@@ -11,8 +11,11 @@ namespace Run00.SqlCopy.IntegrationTest
 	{
 		IEnumerable<Type> IEntityInterfaceLocator.GetInterfacesForEntity(string entityName)
 		{
-			if (string.Equals(entityName, "Samples", StringComparison.InvariantCultureIgnoreCase) || string.Equals(entityName, "SampleChilds", StringComparison.InvariantCultureIgnoreCase))
+			if (string.Equals(entityName, "dbo.Samples", StringComparison.InvariantCultureIgnoreCase) || string.Equals(entityName, "dbo.SampleChilds", StringComparison.InvariantCultureIgnoreCase))
 				return new[] { typeof(IOwnedEntity) };
+
+			if (string.Equals(entityName, "dbo.SampleGrandChilds", StringComparison.InvariantCultureIgnoreCase))
+				return new[] { typeof(IChildOwnedEntity) };
 
 			return Enumerable.Empty<Type>();
 		}

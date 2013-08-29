@@ -38,6 +38,10 @@ namespace Run00.SqlCopy.IntegrationTest
 				dc.CopyData(source, target)
 			);
 
+			//var testContext = new SourceContext(_targetConnection);
+
+			//Assert.AreEqual(2, testContext.Samples.Count());
+			//Assert.AreEqual(1, testContext.SampleChildren.Count());
 		}
 
 		public const string _sourceConnection = @"Data Source=(localdb)\v11.0;Initial Catalog=SourceContext;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False";

@@ -70,6 +70,7 @@ namespace Run00.SqlCopySqlServer
 				case SqlDataType.NVarCharMax:
 				case SqlDataType.Text:
 				case SqlDataType.VarChar:
+				case SqlDataType.VarCharMax:
 				case SqlDataType.Xml:
 					return typeof(string);
 
