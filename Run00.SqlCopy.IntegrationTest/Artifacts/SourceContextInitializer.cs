@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data.Entity;
 
-namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
+namespace Run00.SqlCopy.IntegrationTest
 {
 	public class SourceContextInitializer : DropCreateDatabaseAlways<SourceContext>
 	{

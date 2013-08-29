@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 
-namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
+namespace Run00.SqlCopy.IntegrationTest
 {
 	public class SourceContext : DbContext
 	{
@@ -12,7 +12,7 @@ namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
 		public DbSet<SampleChild> SampleChildren { get; set; }
 	}
 
-	public class Sample
+	public class Sample : IOwnedEntity
 	{
 		public Guid Id { get; set; }
 		public string Value { get; set; }
@@ -20,7 +20,7 @@ namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
 		public Guid OwnerId { get; set; }
 	}
 
-	public class SampleChild
+	public class SampleChild : IOwnedEntity
 	{
 		public Guid Id { get; set; }
 		public string Value { get; set; }

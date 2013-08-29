@@ -2,15 +2,16 @@
 using Castle.MicroKernel.Resolvers.SpecializedResolvers;
 using Castle.Windsor;
 using Castle.Windsor.Installer;
+using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlServer.Management.Smo;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Run00.SqlCopy;
-using Run00.SqlCopySqlServer.IntegrationTest.Artifacts;
 using System;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 
-namespace Run00.SqlCopySqlServer.IntegrationTest
+namespace Run00.SqlCopy.IntegrationTest
 {
 	[TestClass]
 	public class CopyDatabase
@@ -54,7 +55,7 @@ namespace Run00.SqlCopySqlServer.IntegrationTest
 		{
 			var currentDir = Directory.GetCurrentDirectory();
 			_container = new WindsorContainer();
-			_container.Kernel.Resolver.AddSubResolver(new CollectionResolver(_container.Kernel, false));
+			_container.Kernel.Resolver.AddSubResolver(new CollectionResolver(_container.Kernel, true));
 			_container.Install(FromAssembly.InDirectory(new AssemblyFilter(currentDir)));
 		}
 

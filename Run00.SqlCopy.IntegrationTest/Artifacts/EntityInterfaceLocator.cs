@@ -5,25 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Run00.SqlCopySqlServer.IntegrationTest.Artifacts
+namespace Run00.SqlCopy.IntegrationTest
 {
 	public class EntityInterfaceLocator : IEntityInterfaceLocator
 	{
-		public EntityInterfaceLocator()
-		{
-			_filterMap = new Dictionary<string, IEnumerable<Type>>();
-			_filterMap.Add("Samples", new[] { typeof(IOwnedEntity) });
-			_filterMap.Add("SampleChilds", new[] { typeof(IOwnedEntity) });
-		}
-
 		IEnumerable<Type> IEntityInterfaceLocator.GetInterfacesForEntity(string entityName)
 		{
-			if (_filterMap.ContainsKey(entityName) == false)
-				return Enumerable.Empty<Type>();
+			if (string.Equals(entityName, "Samples", StringComparison.InvariantCultureIgnoreCase) || string.Equals(entityName, "SampleChilds", StringComparison.InvariantCultureIgnoreCase))
+				return new[] { typeof(IOwnedEntity) };
 
-			return _filterMap[entityName];
+			return Enumerable.Empty<Type>();
 		}
-
-		private Dictionary<string, IEnumerable<Type>> _filterMap;
 	}
 }

@@ -77,11 +77,13 @@ namespace Run00.SqlCopySqlServer
 					//transfer.CopyAllUserDefinedTypes = true;
 					//transfer.TargetDatabaseFilePath = dataFolder;
 
-					var dataFiles = server.Databases[source.Database].FileGroups.Cast<FileGroup>().SelectMany(fg => fg.Files.Cast<DataFile>()).Select(f => f.FileName);
-					MapDatabaseFiles(transfer.DatabaseFileMappings, dataFiles, source.Database, target.Database);
+					var dataFiles = server.Databases[source.Database].FileGroups.Cast<FileGroup>().SelectMany(fg => fg.Files.Cast<DataFile>()).ToList();
+					var d = dataFiles.Select(f => f.FileName);
+					MapDatabaseFiles(transfer.DatabaseFileMappings, d, source.Database, target.Database);
 
-					var logFiles = server.Databases[source.Database].LogFiles.Cast<LogFile>().Select(f => f.FileName);
-					MapDatabaseFiles(transfer.DatabaseFileMappings, logFiles, source.Database, target.Database);
+					var logFiles = server.Databases[source.Database].LogFiles.Cast<LogFile>().ToList();
+					var df = logFiles.Select(f => f.FileName);
+					MapDatabaseFiles(transfer.DatabaseFileMappings, df, source.Database, target.Database);
 
 					transfer.TransferData();
 				}

@@ -3,6 +3,7 @@ using Castle.MicroKernel.Resolvers.SpecializedResolvers;
 using Castle.MicroKernel.SubSystems.Configuration;
 using Castle.Windsor;
 using Run00.SqlCopy;
+using Run00.SqlCopySchema;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,12 +17,10 @@ namespace Run00.SqlCopySqlServer
 		void IWindsorInstaller.Install(IWindsorContainer container, IConfigurationStore store)
 		{
 			container.Register(Component.For<ISchemaCopy>().ImplementedBy<SchemaCopy>());
-			container.Register(Component.For<IDataCopy>().ImplementedBy<DataCopy>());
 			container.Register(Component.For<ISchemaReader>().ImplementedBy<SchemaReader>());
 			container.Register(Component.For<ISchemaConverter>().ImplementedBy<SchemaConverter>());
-			container.Register(Component.For<IContextFactory>().ImplementedBy<ContextFactory>());
-
-			container.Kernel.Resolver.AddSubResolver(new CollectionResolver(container.Kernel, true));
+			container.Register(Component.For<ITableBulkCopy>().ImplementedBy<TableBulkCopy>());
+			container.Register(Component.For<IConnectionFactory>().ImplementedBy<ConnectionFactory>());
 		}
 	}
 }

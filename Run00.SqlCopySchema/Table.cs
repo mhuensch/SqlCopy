@@ -2,7 +2,7 @@
 
 namespace Run00.SqlCopySchema
 {
-	public sealed class Table
+	public class Table
 	{
 		public string Name { get; set; }
 		public string Schema { get; set; }
