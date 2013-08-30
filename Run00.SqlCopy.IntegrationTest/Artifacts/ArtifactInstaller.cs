@@ -15,7 +15,7 @@ namespace Run00.SqlCopy.IntegrationTest
 		void IWindsorInstaller.Install(IWindsorContainer container, IConfigurationStore store)
 		{
 			container.Register(Component.For<IEntityInterfaceLocator>().ImplementedBy<EntityInterfaceLocator>());
-			container.Register(Classes.FromThisAssembly().BasedOn<IEntityQueryFilter>().WithServiceBase());
+			container.Register(Classes.FromThisAssembly().BasedOn<IEntityFilter>().WithServiceBase());
 		}
 	}
 }

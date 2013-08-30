@@ -10,7 +10,7 @@ namespace Run00.SqlCopyData
 {
 	public class DataCopy : IDataCopy
 	{
-		public DataCopy(ISchemaReader schemaReader, ISchemaConverter schemaConverter, IDbRepositoryFactory repositoryFactory, IEntityTableFactory entityTableFactory, ITableBulkCopy tableBulkCopy, IConnectionFactory connectionFactory, IEnumerable<IEntityQueryFilter> entityFilters)
+		public DataCopy(ISchemaReader schemaReader, ISchemaConverter schemaConverter, IDbRepositoryFactory repositoryFactory, IEntityTableFactory entityTableFactory, ITableBulkCopy tableBulkCopy, IConnectionFactory connectionFactory, IEnumerable<IEntityFilter> entityFilters)
 		{
 			_schemaReader = schemaReader;
 			_schemaConverter = schemaConverter;
@@ -56,7 +56,7 @@ namespace Run00.SqlCopyData
 				//	continue;
 				
 				foreach (var filter in _entityFilters)
-					entities = filter.Filter(entities);
+					entities = filter.Filter(entities, sourceRepository);
 
 				result.Add(entities);
 			}
@@ -67,7 +67,7 @@ namespace Run00.SqlCopyData
 		private readonly ISchemaConverter _schemaConverter;
 		private readonly ISchemaReader _schemaReader;
 		private readonly IDbRepositoryFactory _repositoryFactory;
-		private readonly IEnumerable<IEntityQueryFilter> _entityFilters;
+		private readonly IEnumerable<IEntityFilter> _entityFilters;
 		private readonly IConnectionFactory _connectionFactory;
 		private readonly IEntityTableFactory _entityTableFactory;
 		private readonly ITableBulkCopy _tableBulkCopy;

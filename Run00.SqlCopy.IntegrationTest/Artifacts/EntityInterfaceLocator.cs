@@ -1,4 +1,5 @@
 ﻿using Run00.SqlCopy;
+using Run00.SqlCopy.IntegrationTest.Artifacts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +12,11 @@ namespace Run00.SqlCopy.IntegrationTest
 	{
 		IEnumerable<Type> IEntityInterfaceLocator.GetInterfacesForEntity(string entityName)
 		{
-			if (string.Equals(entityName, "dbo.Samples", StringComparison.InvariantCultureIgnoreCase) || string.Equals(entityName, "dbo.SampleChilds", StringComparison.InvariantCultureIgnoreCase))
+			if (string.Equals(entityName, "dbo.Samples", StringComparison.InvariantCultureIgnoreCase))
 				return new[] { typeof(IOwnedEntity) };
+
+			if (string.Equals(entityName, "dbo.SampleChilds", StringComparison.InvariantCultureIgnoreCase))
+				return new[] { typeof(IOwnedEntity), typeof(IChildOwners) };
 
 			if (string.Equals(entityName, "dbo.SampleGrandChilds", StringComparison.InvariantCultureIgnoreCase))
 				return new[] { typeof(IChildOwnedEntity) };

@@ -76,14 +76,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BaseEntityQueryFilter.cs" />
     <Compile Include="IConnectionFactory.cs" />
     <Compile Include="IDbRepositoryFactory.cs" />
     <Compile Include="IDataCopy.cs" />
     <Compile Include="DatabaseInfo.cs" />
     <Compile Include="IDbRepository.cs" />
     <Compile Include="IEntityInterfaceLocator.cs" />
-    <Compile Include="IEntityQueryFilter.cs" />
+    <Compile Include="IEntityFilter.cs" />
     <Compile Include="ISchemaCopy.cs" />
     <Compile Include="ITableBulkCopy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

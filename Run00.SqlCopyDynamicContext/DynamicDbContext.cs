@@ -11,15 +11,17 @@ namespace Run00.SqlCopyDynamicContext
 {
 	public class DynamicDbContext : DbContext
 	{
+		public IEnumerable<Type> EntityTypes { get; private set; }
+
 		public DynamicDbContext(DatabaseInfo info, IEnumerable<Type> entityTypes) : base(info.ConnectionString)
 		{
-			_entityTypes = entityTypes;
+			EntityTypes = entityTypes;
 		}
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
-			foreach (var entityType in _entityTypes)
+			foreach (var entityType in EntityTypes)
 				AddEntityType(modelBuilder, entityType);
 		}
 
@@ -29,8 +31,5 @@ namespace Run00.SqlCopyDynamicContext
 			method = method.MakeGenericMethod(new Type[] { entityType });
 			method.Invoke(modelBuilder, null);
 		}
-
-		private readonly IEnumerable<Type> _entityTypes;
-
 	}
 }

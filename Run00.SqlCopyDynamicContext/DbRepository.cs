@@ -24,6 +24,18 @@ namespace Run00.SqlCopyDynamicContext
 			return _context.Set(type);
 		}
 
+		IQueryable IDbRepository.GetEntities(string entityName)
+		{
+			var type = _context.EntityTypes
+				.Where(t => t.FullName.Equals(entityName, StringComparison.InvariantCultureIgnoreCase))
+				.FirstOrDefault();
+			
+			if (type == null)
+				return null;
+
+			return _context.Set(type);
+		}
+
 		private DynamicDbContext _context;
 	}
 }
