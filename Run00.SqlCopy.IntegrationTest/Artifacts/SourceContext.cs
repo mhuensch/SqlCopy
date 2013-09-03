@@ -25,9 +25,9 @@ namespace Run00.SqlCopy.IntegrationTest
 	{
 		public Guid Id { get; set; }
 		public string Value { get; set; }
+		public Guid OwnerId { get; set; }
 		public Sample Parent { get; set; }
 		public ICollection<SampleGrandChild> Children { get; set; }
-		public Guid OwnerId { get; set; }
 	}
 
 	public class SampleGrandChild

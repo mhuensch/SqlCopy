@@ -41,17 +41,19 @@ namespace Run00.SqlCopySqlServer
 			return table.Columns.Cast<Microsoft.SqlServer.Management.Smo.Column>().Select(c => new Run00.SqlCopySchema.Column()
 			{
 				Name = c.Name,
-				Type = GetClrType(c.DataType.SqlDataType),
+				Nullable = c.Nullable,
+				Type = GetClrType(c.DataType.SqlDataType, c.Nullable),
+				InPrimaryKey = c.InPrimaryKey,
 				Table = table.Name
 			});
 		}
 
-		private static Type GetClrType(SqlDataType sqlType)
+		private static Type GetClrType(SqlDataType sqlType, bool isNullable)
 		{
 			switch (sqlType)
 			{
 				case SqlDataType.BigInt:
-					return typeof(long?);
+					return isNullable ? typeof(long?) : typeof(long);
 
 				case SqlDataType.Binary:
 				case SqlDataType.Image:
@@ -61,7 +63,7 @@ namespace Run00.SqlCopySqlServer
 					return typeof(byte[]);
 
 				case SqlDataType.Bit:
-					return typeof(bool?);
+					return isNullable ? typeof(bool?) : typeof(bool);
 
 				case SqlDataType.Char:
 				case SqlDataType.NChar:
@@ -79,39 +81,37 @@ namespace Run00.SqlCopySqlServer
 				case SqlDataType.Date:
 				case SqlDataType.Time:
 				case SqlDataType.DateTime2:
-					return typeof(DateTime?);
+					return isNullable ? typeof(DateTime?) : typeof(DateTime);
 
 				case SqlDataType.Decimal:
 				case SqlDataType.Money:
 				case SqlDataType.SmallMoney:
-					return typeof(decimal?);
+					return isNullable ? typeof(decimal?) : typeof(decimal);
 
 				case SqlDataType.Float:
-					return typeof(double?);
+					return isNullable ? typeof(double?) : typeof(double);
 
 				case SqlDataType.Int:
-					return typeof(int?);
+					return isNullable ? typeof(int?) : typeof(int);
 
 				case SqlDataType.Real:
-					return typeof(float?);
+					return isNullable ? typeof(float?) : typeof(float);
 
 				case SqlDataType.UniqueIdentifier:
-					return typeof(Guid);
+					return isNullable ? typeof(Guid?) : typeof(Guid);
 
 				case SqlDataType.SmallInt:
-					return typeof(short?);
+					return isNullable ? typeof(short?) : typeof(short);
 
 				case SqlDataType.TinyInt:
-					return typeof(byte?);
+					return isNullable ? typeof(byte?) : typeof(byte);
 
 				case SqlDataType.Variant:
 				case SqlDataType.UserDefinedDataType:
 					return typeof(object);
 
-
-
 				case SqlDataType.DateTimeOffset:
-					return typeof(DateTimeOffset?);
+					return isNullable ? typeof(DateTimeOffset?) : typeof(DateTimeOffset);
 
 				default:
 					throw new ArgumentOutOfRangeException("sqlType");

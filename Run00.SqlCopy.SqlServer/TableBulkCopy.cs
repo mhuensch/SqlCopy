@@ -10,15 +10,27 @@ namespace Run00.SqlCopySqlServer
 {
 	public class TableBulkCopy : ITableBulkCopy
 	{
-		void ITableBulkCopy.Copy(IDbConnection connection, DataTable data)
+		public TableBulkCopy (IQueryBuilder queryBuilder)
+		{
+			_queryBuilder = queryBuilder;
+		}
+
+		void ITableBulkCopy.Copy(IDbConnection connection, IQueryable query)
 		{
 			var sqlConnection = connection as SqlConnection;
 			if (sqlConnection == null)
 				throw new InvalidOperationException();
 
+			var q = _queryBuilder.Build(query);
+			var command = new SqlCommand(q.Sql, sqlConnection);
+			foreach(var p in q.Parameters)
+				command.Parameters.Add(new SqlParameter(p.Name, p.Value));
+
 			var copy = new SqlBulkCopy(sqlConnection);
-			copy.DestinationTableName = data.TableName;
-			copy.WriteToServer(data);
+			copy.DestinationTableName = query.ElementType.FullName;
+			copy.WriteToServer(command.ExecuteReader());
 		}
+
+		private readonly IQueryBuilder _queryBuilder;
 	}
 }

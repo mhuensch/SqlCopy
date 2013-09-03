@@ -8,6 +8,6 @@ namespace Run00.SqlCopy.IntegrationTest
 {
 	public interface IChildOwnedEntity
 	{
-		Guid Parent_Id { get; set; }
+		Guid? Parent_Id { get; set; }
 	}
 }

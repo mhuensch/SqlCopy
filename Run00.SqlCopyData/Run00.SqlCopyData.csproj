@@ -51,8 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataCopy.cs" />
-    <Compile Include="IEntityTableFactory.cs" />
-    <Compile Include="EntityTableFactory.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

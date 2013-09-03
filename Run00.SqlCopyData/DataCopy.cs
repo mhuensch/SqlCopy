@@ -5,18 +5,19 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Data;
+using System.Data.Objects;
+using System.Reflection;
 
 namespace Run00.SqlCopyData
 {
 	public class DataCopy : IDataCopy
 	{
-		public DataCopy(ISchemaReader schemaReader, ISchemaConverter schemaConverter, IDbRepositoryFactory repositoryFactory, IEntityTableFactory entityTableFactory, ITableBulkCopy tableBulkCopy, IConnectionFactory connectionFactory, IEnumerable<IEntityFilter> entityFilters)
+		public DataCopy(ISchemaReader schemaReader, ISchemaConverter schemaConverter, IDbRepositoryFactory repositoryFactory, ITableBulkCopy tableBulkCopy, IConnectionFactory connectionFactory, IEnumerable<IEntityFilter> entityFilters)
 		{
 			_schemaReader = schemaReader;
 			_schemaConverter = schemaConverter;
 			_repositoryFactory = repositoryFactory;
 			_entityFilters = entityFilters;
-			_entityTableFactory = entityTableFactory;
 			_connectionFactory = connectionFactory;
 			_tableBulkCopy = tableBulkCopy;
 		}
@@ -33,10 +34,7 @@ namespace Run00.SqlCopyData
 					targetConnection.Open();
 
 					foreach (var query in GetEntityQueries(source))
-					{
-						var entityDataTable = _entityTableFactory.Create(query);
-						_tableBulkCopy.Copy(targetConnection, entityDataTable);
-					}
+						_tableBulkCopy.Copy(targetConnection, query);
 				}
 			}
 		}
@@ -52,9 +50,6 @@ namespace Run00.SqlCopyData
 			{
 				var entities = sourceRepository.GetEntities(type);
 
-				//if (_entityFilters.Any(f => f.EntityType.IsAssignableFrom(type)) == false)
-				//	continue;
-				
 				foreach (var filter in _entityFilters)
 					entities = filter.Filter(entities, sourceRepository);
 
@@ -69,7 +64,6 @@ namespace Run00.SqlCopyData
 		private readonly IDbRepositoryFactory _repositoryFactory;
 		private readonly IEnumerable<IEntityFilter> _entityFilters;
 		private readonly IConnectionFactory _connectionFactory;
-		private readonly IEntityTableFactory _entityTableFactory;
 		private readonly ITableBulkCopy _tableBulkCopy;
 	}
 }

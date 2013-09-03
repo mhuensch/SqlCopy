@@ -10,7 +10,6 @@ namespace Run00.SqlCopyData
 		void IWindsorInstaller.Install(IWindsorContainer container, IConfigurationStore store)
 		{
 			container.Register(Component.For<IDataCopy>().ImplementedBy<DataCopy>());
-			container.Register(Component.For<IEntityTableFactory>().ImplementedBy<EntityTableFactory>());
 		}
 	}
 }
