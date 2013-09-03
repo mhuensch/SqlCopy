@@ -71,7 +71,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandBuilder.cs" />
-    <Compile Include="ConnectionFactory.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="SchemaConverter.cs" />
     <Compile Include="SchemaCopy.cs" />

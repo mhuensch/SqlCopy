@@ -52,7 +52,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EntityTableFactory.cs" />
     <Compile Include="DbRepositoryFactory.cs" />
     <Compile Include="DbRepository.cs" />
     <Compile Include="DynamicDbContext.cs" />
@@ -65,9 +64,6 @@
       <Project>{95cbc5a8-489a-4d3e-a01e-88f0f165da8b}</Project>
       <Name>Run00.SqlCopy</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
