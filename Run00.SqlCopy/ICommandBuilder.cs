@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace Run00.SqlCopy
 {
-	public interface ITableBulkCopy
+	public interface ICommandBuilder
 	{
-		void Copy(DatabaseInfo targetDatabase, string tableName, IDataReader reader);
+		IDbCommand Build(DatabaseInfo database, IQueryable query);
 	}
 }

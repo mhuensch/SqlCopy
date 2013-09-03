@@ -76,6 +76,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ICommandBuilder.cs" />
     <Compile Include="IConnectionFactory.cs" />
     <Compile Include="IDbRepositoryFactory.cs" />
     <Compile Include="IDataCopy.cs" />
