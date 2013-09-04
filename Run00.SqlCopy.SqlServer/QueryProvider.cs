@@ -24,7 +24,7 @@ namespace Run00.SqlCopySqlServer
 		{
 			public override string GetTableName(MappingEntity entity)
 			{
-				return entity.EntityType.FullName;
+				return "[" + entity.EntityType.Namespace + "].[" + entity.EntityType.Name +"]";
 			}
 		}
 	}
