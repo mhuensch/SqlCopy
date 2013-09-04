@@ -83,7 +83,9 @@
     <Compile Include="IDbRepository.cs" />
     <Compile Include="IEntityInterfaceLocator.cs" />
     <Compile Include="IEntityFilter.cs" />
+    <Compile Include="IEntityTableFactory.cs" />
     <Compile Include="IQueryBuilder.cs" />
+    <Compile Include="IQueryProviderFactory.cs" />
     <Compile Include="ISchemaCopy.cs" />
     <Compile Include="ITableBulkCopy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -12,22 +12,22 @@ namespace Run00.SqlCopyData
 {
 	public class DataCopy : IDataCopy
 	{
-		public DataCopy(ISchemaReader schemaReader, ISchemaConverter schemaConverter, IDbRepositoryFactory repositoryFactory, ITableBulkCopy tableBulkCopy, IEnumerable<IEntityFilter> entityFilters, ICommandBuilder commandBuilder)
+		public DataCopy(ISchemaReader schemaReader, ISchemaConverter schemaConverter, IDbRepositoryFactory repositoryFactory, ITableBulkCopy tableBulkCopy, IEnumerable<IEntityFilter> entityFilters, IEntityTableFactory entityTableFactory)
 		{
 			_schemaReader = schemaReader;
 			_schemaConverter = schemaConverter;
 			_repositoryFactory = repositoryFactory;
 			_entityFilters = entityFilters;
 			_tableBulkCopy = tableBulkCopy;
-			_commandBuilder = commandBuilder;
+			_entityTableFactory = entityTableFactory;
 		}
 
 		void IDataCopy.CopyData(DatabaseInfo source, DatabaseInfo target)
 		{
 			foreach (var query in GetEntityQueries(source))
 			{
-				var command = _commandBuilder.Build(source, query);
-				_tableBulkCopy.Copy(target, query.ElementType.FullName, command.ExecuteReader());
+				var entityDataTable = _entityTableFactory.Create(query);
+				_tableBulkCopy.Copy(target, entityDataTable);
 			}
 		}
 
@@ -56,6 +56,6 @@ namespace Run00.SqlCopyData
 		private readonly IDbRepositoryFactory _repositoryFactory;
 		private readonly IEnumerable<IEntityFilter> _entityFilters;
 		private readonly ITableBulkCopy _tableBulkCopy;
-		private readonly ICommandBuilder _commandBuilder;
+		private readonly IEntityTableFactory _entityTableFactory;
 	}
 }

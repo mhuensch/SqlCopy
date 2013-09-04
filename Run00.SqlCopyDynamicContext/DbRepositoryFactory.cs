@@ -11,11 +11,17 @@ namespace Run00.SqlCopyDynamicContext
 {
 	public class DbRepositoryFactory : IDbRepositoryFactory
 	{
+		public DbRepositoryFactory(IQueryProviderFactory queryProviderFactory)
+		{
+			_queryProviderFactory = queryProviderFactory;
+		}
+
 		IDbRepository IDbRepositoryFactory.Create(DatabaseInfo info, IEnumerable<Type> entityTypes)
 		{
-			System.Data.Entity.Database.SetInitializer<DynamicDbContext>(null);
-			var context = new DynamicDbContext(info, entityTypes);
-			return new DbRepository(context);
+			return new DbRepository(_queryProviderFactory.Create(info), entityTypes);
 		}
+
+		private readonly IQueryProviderFactory _queryProviderFactory;
 	}
+
 }

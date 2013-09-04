@@ -38,9 +38,14 @@
     <Reference Include="Castle.Windsor">
       <HintPath>..\packages\Castle.Windsor.3.2.1\lib\net45\Castle.Windsor.dll</HintPath>
     </Reference>
-    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+    <Reference Include="IQToolkit">
+      <HintPath>..\..\IQToolkit v0.17b\IQToolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="IQToolkit.Data">
+      <HintPath>..\..\IQToolkit v0.17b\IQToolkit.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="IQToolkit.Data.SqlClient">
+      <HintPath>..\..\IQToolkit v0.17b\IQToolkit.Data.SqlClient.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.SqlServer.ConnectionInfo, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -72,6 +77,7 @@
   <ItemGroup>
     <Compile Include="CommandBuilder.cs" />
     <Compile Include="Installer.cs" />
+    <Compile Include="QueryProvider.cs" />
     <Compile Include="SchemaConverter.cs" />
     <Compile Include="SchemaCopy.cs" />
     <Compile Include="SchemaReader.cs" />
@@ -89,6 +95,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

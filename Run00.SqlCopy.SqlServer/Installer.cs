@@ -20,7 +20,7 @@ namespace Run00.SqlCopySqlServer
 			container.Register(Component.For<ISchemaReader>().ImplementedBy<SchemaReader>());
 			container.Register(Component.For<ISchemaConverter>().ImplementedBy<SchemaConverter>());
 			container.Register(Component.For<ITableBulkCopy>().ImplementedBy<TableBulkCopy>());
-			container.Register(Component.For<ICommandBuilder>().ImplementedBy<CommandBuilder>());
+			container.Register(Component.For<IQueryProviderFactory>().ImplementedBy<QueryProviderFactory>());
 		}
 	}
 }
