@@ -10,4 +10,23 @@ namespace Run00.SqlCopy.IntegrationTest
 	{
 		Guid OwnerId { get; set; }
 	}
+
+	public interface IIdEntity
+	{
+		int id { get; set; }
+	}
+
+	public interface ITenantEntity
+	{
+		int tenant_id { get; set; }
+	}
+
+	public interface IIgnoreTable
+	{
+	}
+
+	public interface IGuidTenantIdEntity
+	{
+		Guid TenantId { get; set; }
+	}
 }

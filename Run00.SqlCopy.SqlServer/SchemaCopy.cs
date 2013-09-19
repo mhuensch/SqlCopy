@@ -14,7 +14,7 @@ namespace Run00.SqlCopySqlServer
 	{
 		void ISchemaCopy.CopySchema(DatabaseInfo source, DatabaseInfo target)
 		{
-			DropTargetDatabseIfExists(target);
+			//DropTargetDatabseIfExists(target);
 			CopySourceDatabaseToTarget(source, target);
 		}
 
@@ -72,7 +72,7 @@ namespace Run00.SqlCopySqlServer
 					transfer.CopyAllDefaults = true;
 					transfer.CopyAllViews = false;
 					transfer.CopyAllSynonyms = true;
-					transfer.CreateTargetDatabase = true;
+					//transfer.CreateTargetDatabase = true;
 					transfer.DropDestinationObjectsFirst = true;
 
 					//transfer.CopyAllUserDefinedFunctions = true;
