@@ -1,4 +1,5 @@
-﻿
+﻿using System.Collections.Generic;
+
 namespace Run00.SqlCopy
 {
 	public interface IDataCopy

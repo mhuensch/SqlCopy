@@ -5,8 +5,9 @@ using System.Text;
 
 namespace Run00.SqlCopy
 {
-	public interface IEntityInterfaceLocator
+	public class Query
 	{
-		IEnumerable<Type> GetInterfacesForEntity(string entityName);
+		public string Sql { get; set; }
+		public IEnumerable<QueryParameter> Parameters { get; set; }
 	}
 }

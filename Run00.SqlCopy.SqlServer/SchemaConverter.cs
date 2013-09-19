@@ -1,11 +1,10 @@
 ﻿using Run00.SqlCopy;
+using Run00.SqlCopySchema;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Run00.SqlCopySqlServer
 {
@@ -19,32 +18,27 @@ namespace Run00.SqlCopySqlServer
 		IEnumerable<Type> ISchemaConverter.ToEntityTypes(Database database)
 		{
 			var result = new List<Type>();
+			var assemblyBuilder = AppDomain
+					.CurrentDomain
+					.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.RunAndSave);
+
+			var moduleBuilder = assemblyBuilder.DefineDynamicModule(Guid.NewGuid().ToString());
 
 			foreach (var table in database.Tables.Where(t => t.IsSystemObject == false))
 			{
-				var builder = CreateTypeBuilder(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), table.Name);
+				var typeName = table.Schema + "." + table.Name;
+				var interfacesForType = _interfaceLocator.GetInterfacesForEntity(typeName).ToArray();
+				var typeBuilder = moduleBuilder.DefineType(typeName, TypeAttributes.Public, null, interfacesForType);
+				typeBuilder.DefineDefaultConstructor(MethodAttributes.Public);
 
-				foreach(var column in table.Columns)
-					CreateAutoImplementedProperty(builder, column.Name, column.Type);
+				foreach (var column in table.Columns)
+					CreateAutoImplementedProperty(typeBuilder, column.Name, column.Type);
 
-				var type = builder.CreateType();
+				var type = typeBuilder.CreateType();
 				result.Add(type);
 			}
 
 			return result;
-		}
-
-		private TypeBuilder CreateTypeBuilder(string assemblyName, string moduleName, string typeName)
-		{
-			var interfacesForType = _interfaceLocator.GetInterfacesForEntity(typeName).ToArray();
-			//var interfacesForType = new Type[] {};
-			var typeBuilder = AppDomain
-					.CurrentDomain
-					.DefineDynamicAssembly(new AssemblyName(assemblyName), AssemblyBuilderAccess.Run)
-					.DefineDynamicModule(moduleName)
-					.DefineType(typeName, TypeAttributes.Public, null, interfacesForType);
-			typeBuilder.DefineDefaultConstructor(MethodAttributes.Public);
-			return typeBuilder;
 		}
 
 		private static void CreateAutoImplementedProperty(TypeBuilder builder, string propertyName, Type propertyType)

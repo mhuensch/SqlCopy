@@ -10,5 +10,6 @@ namespace Run00.SqlCopy
 	{
 		IQueryable<T> GetEntities<T>() where T : class;
 		IQueryable GetEntities(Type type);
+		IQueryable GetEntities(string entityName);
 	}
 }

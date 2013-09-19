@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Run00.SqlCopy")]
+[assembly: AssemblyTitle("Run00.SqlCopySchema")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Run00.SqlCopy")]
+[assembly: AssemblyProduct("Run00.SqlCopySchema")]
 [assembly: AssemblyCopyright("Copyright ©  2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("cf13b14f-5b4f-40d3-91ff-6425b69949f9")]
+[assembly: Guid("cde90efa-5da5-43c6-b2eb-eae83ee02f45")]
 
 // Version information for an assembly consists of the following four values:
 //

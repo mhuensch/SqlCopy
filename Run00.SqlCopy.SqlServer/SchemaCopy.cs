@@ -1,9 +1,11 @@
 ﻿using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Smo;
 using Run00.SqlCopy;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 
 namespace Run00.SqlCopySqlServer
@@ -75,13 +77,9 @@ namespace Run00.SqlCopySqlServer
 
 					//transfer.CopyAllUserDefinedFunctions = true;
 					//transfer.CopyAllUserDefinedTypes = true;
-					//transfer.TargetDatabaseFilePath = dataFolder;
 
-					var dataFiles = server.Databases[source.Database].FileGroups.Cast<FileGroup>().SelectMany(fg => fg.Files.Cast<DataFile>()).Select(f => f.FileName);
-					MapDatabaseFiles(transfer.DatabaseFileMappings, dataFiles, source.Database, target.Database);
-
-					var logFiles = server.Databases[source.Database].LogFiles.Cast<LogFile>().Select(f => f.FileName);
-					MapDatabaseFiles(transfer.DatabaseFileMappings, logFiles, source.Database, target.Database);
+					transfer.TargetDatabaseFilePath = GetServerDirectory(target);
+					RemapServerFiles(server, transfer, source, target);
 
 					transfer.TransferData();
 				}
@@ -92,10 +90,37 @@ namespace Run00.SqlCopySqlServer
 			}
 		}
 
-		private static void MapDatabaseFiles(DatabaseFileMappingsDictionary dictionary, IEnumerable<string> sourceFiles, string sourceDb, string targetDb)
+		private static void RemapServerFiles(Server server, Transfer transfer, DatabaseInfo source, DatabaseInfo target)
 		{
-			foreach (var file in sourceFiles)
-				dictionary.Add(file, file.Replace(sourceDb, targetDb));
+			var dir = GetServerDirectory(target);
+			var dataFiles = server.Databases[source.Database].FileGroups.Cast<FileGroup>().SelectMany(fg => fg.Files.Cast<DataFile>()).ToList();
+			var dataFile = dataFiles.Select(f => f.FileName);
+			foreach (var file in dataFile)
+				transfer.DatabaseFileMappings.Add(file, Path.Combine(dir, Path.GetFileName(file).Replace(source.Database, target.Database)));
+
+			var logFiles = server.Databases[source.Database].LogFiles.Cast<LogFile>().ToList();
+			var logFile = logFiles.Select(f => f.FileName);
+			foreach (var file in logFile)
+				transfer.DatabaseFileMappings.Add(file, Path.Combine(dir, Path.GetFileName(file).Replace(source.Database, target.Database)));
 		}
+
+		private static string GetServerDirectory(DatabaseInfo target)
+		{
+			var result = string.Empty;
+			using (var connection = new SqlConnection(target.ConnectionString))
+			{
+				var server = new Server(new ServerConnection(connection));				
+				try
+				{
+					result = server.Information.MasterDBPath;
+				}
+				catch
+				{
+					result = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+				}
+			}
+			return result;
+		}
+		
 	}
 }

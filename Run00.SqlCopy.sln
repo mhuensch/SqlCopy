@@ -5,14 +5,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Run00.SqlCopy", "Run00.SqlC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Run00.SqlCopySqlServer", "Run00.SqlCopy.SqlServer\Run00.SqlCopySqlServer.csproj", "{96B1820C-91B6-4795-842D-184AE5E485FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Run00.SqlCopySqlServer.IntegrationTest", "Run00.SqlCopySqlServer.IntegrationTest\Run00.SqlCopySqlServer.IntegrationTest.csproj", "{FCF0DDFC-901B-454A-AA49-D0CF65E11F3F}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{0C76AAD2-A086-4FD7-ACCE-96AE6F23A284}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Run00.SqlCopy.IntegrationTest", "Run00.SqlCopy.IntegrationTest\Run00.SqlCopy.IntegrationTest.csproj", "{BC7A3B04-9C96-44A2-93CF-A409FA8BBC3A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Run00.SqlCopyData", "Run00.SqlCopyData\Run00.SqlCopyData.csproj", "{1667E833-9DF0-4C3F-B1FD-6F4E23F13461}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Run00.SqlCopyDynamicContext", "Run00.SqlCopyDynamicContext\Run00.SqlCopyDynamicContext.csproj", "{F91C6E76-0C40-40A4-9B41-F543B4166CFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Run00.SqlCopySchema", "Run00.SqlCopySchema\Run00.SqlCopySchema.csproj", "{F81A055C-1398-44BC-8B89-2DF951BF7C81}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,10 +34,22 @@ Global
 		{96B1820C-91B6-4795-842D-184AE5E485FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96B1820C-91B6-4795-842D-184AE5E485FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96B1820C-91B6-4795-842D-184AE5E485FD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FCF0DDFC-901B-454A-AA49-D0CF65E11F3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FCF0DDFC-901B-454A-AA49-D0CF65E11F3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FCF0DDFC-901B-454A-AA49-D0CF65E11F3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FCF0DDFC-901B-454A-AA49-D0CF65E11F3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC7A3B04-9C96-44A2-93CF-A409FA8BBC3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC7A3B04-9C96-44A2-93CF-A409FA8BBC3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC7A3B04-9C96-44A2-93CF-A409FA8BBC3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC7A3B04-9C96-44A2-93CF-A409FA8BBC3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1667E833-9DF0-4C3F-B1FD-6F4E23F13461}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1667E833-9DF0-4C3F-B1FD-6F4E23F13461}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1667E833-9DF0-4C3F-B1FD-6F4E23F13461}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1667E833-9DF0-4C3F-B1FD-6F4E23F13461}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F91C6E76-0C40-40A4-9B41-F543B4166CFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F91C6E76-0C40-40A4-9B41-F543B4166CFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F91C6E76-0C40-40A4-9B41-F543B4166CFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F91C6E76-0C40-40A4-9B41-F543B4166CFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F81A055C-1398-44BC-8B89-2DF951BF7C81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F81A055C-1398-44BC-8B89-2DF951BF7C81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F81A055C-1398-44BC-8B89-2DF951BF7C81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F81A055C-1398-44BC-8B89-2DF951BF7C81}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
