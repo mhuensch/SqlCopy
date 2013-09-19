@@ -24,12 +24,16 @@ namespace Run00.SqlCopySqlServer
 		{
 			public override string GetTableName(MappingEntity entity)
 			{
+<<<<<<< HEAD
 				var name = entity.EntityType.FullName;
 				if (name.Equals("dbo.user"))
 				{
 					name = "[dbo].[user]";
 				}
 				return name;
+=======
+				return "[" + entity.EntityType.Namespace + "].[" + entity.EntityType.Name +"]";
+>>>>>>> fb90f2f7ba08b41dc8952c80fe35e9c92e544a9a
 			}
 		}
 	}
