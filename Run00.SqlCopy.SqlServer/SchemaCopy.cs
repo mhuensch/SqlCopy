@@ -25,7 +25,7 @@ namespace Run00.SqlCopySqlServer
 			using (var connection = new SqlConnection(location.ConnectionString))
 			{
 				try
-				{		
+				{
 					connection.Open();
 					var server = new Server(new ServerConnection(connection));
 					var db = server.Databases[location.Database];
@@ -33,7 +33,8 @@ namespace Run00.SqlCopySqlServer
 					if (db == null)
 						return;
 
-					db.Drop();
+					// db.Drop() doens't seem to close existing connections
+					server.KillDatabase(location.Database);
 				}
 				catch (SqlException ex)
 				{
@@ -78,7 +79,7 @@ namespace Run00.SqlCopySqlServer
 					//transfer.CopyAllUserDefinedFunctions = true;
 					//transfer.CopyAllUserDefinedTypes = true;
 
-					transfer.TargetDatabaseFilePath = GetServerDirectory(target);
+					transfer.TargetDatabaseFilePath = GetServerDirectory(target, server);
 					RemapServerFiles(server, transfer, source, target);
 
 					transfer.TransferData();
@@ -92,7 +93,7 @@ namespace Run00.SqlCopySqlServer
 
 		private static void RemapServerFiles(Server server, Transfer transfer, DatabaseInfo source, DatabaseInfo target)
 		{
-			var dir = GetServerDirectory(target);
+			var dir = GetServerDirectory(target, server);
 			var dataFiles = server.Databases[source.Database].FileGroups.Cast<FileGroup>().SelectMany(fg => fg.Files.Cast<DataFile>()).ToList();
 			var dataFile = dataFiles.Select(f => f.FileName);
 			foreach (var file in dataFile)
@@ -104,23 +105,19 @@ namespace Run00.SqlCopySqlServer
 				transfer.DatabaseFileMappings.Add(file, Path.Combine(dir, Path.GetFileName(file).Replace(source.Database, target.Database)));
 		}
 
-		private static string GetServerDirectory(DatabaseInfo target)
+		private static string GetServerDirectory(DatabaseInfo target, Server server)
 		{
 			var result = string.Empty;
-			using (var connection = new SqlConnection(target.ConnectionString))
+			try
 			{
-				var server = new Server(new ServerConnection(connection));				
-				try
-				{
-					result = server.Information.MasterDBPath;
-				}
-				catch
-				{
-					result = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-				}
+				result = server.Information.MasterDBPath;
+			}
+			catch
+			{
+				result = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 			}
 			return result;
 		}
-		
+
 	}
 }
