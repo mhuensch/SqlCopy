@@ -10,30 +10,30 @@ using System.Linq;
 
 namespace Run00.SqlCopySqlServer
 {
-	public class SchemaCopy : ISchemaCopy
+	public class SchemaCopy : Transfer, ISchemaCopy
 	{
 		void ISchemaCopy.CopySchema(DatabaseInfo source, DatabaseInfo target)
 		{
-			//DropTargetDatabseIfExists(target);
+			DropTargetDatabseIfExists(target);
+			CreateDatabase(target);
 			CopySourceDatabaseToTarget(source, target);
 		}
 
-		private static void DropTargetDatabseIfExists(DatabaseInfo location)
+		private static void CreateDatabase(DatabaseInfo location)
 		{
-			//Manually creating and opening connection because SMO with LocalDB has 
-			//a bug in opening the connection when querying the database.
-			using (var connection = new SqlConnection(location.ConnectionString))
+			var cb = new SqlConnectionStringBuilder(location.ConnectionString);
+			cb.InitialCatalog = string.Empty;
+			var connStr = cb.ToString();
+			using (var connection = new SqlConnection(connStr))
 			{
 				try
 				{		
 					connection.Open();
 					var server = new Server(new ServerConnection(connection));
-					var db = server.Databases[location.Database];
-
-					if (db == null)
-						return;
-
-					db.Drop();
+					server.Refresh();
+					var newDb = new Database(server, location.Database);
+					newDb.Create();
+					server.Refresh();
 				}
 				catch (SqlException ex)
 				{
@@ -49,7 +49,42 @@ namespace Run00.SqlCopySqlServer
 			}
 		}
 
-		private static void CopySourceDatabaseToTarget(DatabaseInfo source, DatabaseInfo target)
+		private static void DropTargetDatabseIfExists(DatabaseInfo location)
+		{
+			//Manually creating and opening connection because SMO with LocalDB has 
+			//a bug in opening the connection when querying the database.
+			using (var connection = new SqlConnection(location.ConnectionString))
+			{
+				try
+				{		
+					connection.Open();
+					var server = new Server(new ServerConnection(connection));
+					var db = server.Databases[location.Database];
+
+
+					if (db == null)
+						return;
+
+					server.KillDatabase(db.Name);
+
+					//db.AutoClose = true;
+					//db.Drop();
+				}
+				catch (SqlException ex)
+				{
+					//Throw the error if a problem occurred that was not connecting to the database.
+					var error = ex.Errors.Cast<SqlError>().FirstOrDefault();
+					if (error == null || error.Number != 4060)
+						throw;
+				}
+				finally
+				{
+					connection.Close();
+				}
+			}
+		}
+
+		private void CopySourceDatabaseToTarget(DatabaseInfo source, DatabaseInfo target)
 		{
 			//Manually creating and opening connection because SMO with LocalDB has 
 			//a bug in opening the connection when querying the database.
@@ -58,30 +93,72 @@ namespace Run00.SqlCopySqlServer
 				try
 				{
 					var server = new Server(new ServerConnection(connection));
-					var transfer = new Transfer(server.Databases[source.Database]);
+					//var transfer = new Transfer(server.Databases[source.Database]);
+					this.Database = server.Databases[source.Database];
 
-					transfer.DestinationServer = target.Server;
-					transfer.DestinationDatabase = target.Database;
+					this.DestinationServer = target.Server;
+					this.DestinationDatabase = target.Database;
 
-					transfer.CopyData = false;
-					transfer.CopyAllObjects = false;
+					this.CopyData = false;
+					this.CopyAllObjects = false;
 
-					transfer.CopyAllSchemas = true;
-					transfer.CopyAllTables = true;
-					transfer.Options.DriAll = true;
-					transfer.CopyAllDefaults = true;
-					transfer.CopyAllViews = false;
-					transfer.CopyAllSynonyms = true;
-					//transfer.CreateTargetDatabase = true;
-					transfer.DropDestinationObjectsFirst = true;
+					this.CopyAllSchemas = true;
+					this.CopyAllTables = true;
+					this.Options.DriAll = true;
+					this.CopyAllDefaults = true;
+					//transfer.CopyAllViews = false;
+					this.CopyAllViews = true;
+					this.CopyAllSynonyms = true;
+					this.CreateTargetDatabase = false;
+					this.DropDestinationObjectsFirst = true;
+					this.CopyAllStoredProcedures = true;
+					this.CopyAllUserDefinedTypes = true;
+					this.CopyAllUserDefinedTableTypes = true;
+					this.CopyAllUserDefinedFunctions = true;
+					this.CopyAllUserDefinedDataTypes = true;
+					this.CopyAllUserDefinedAggregates = true;
+					this.CopyAllSequences = true;
+					this.CopyAllDatabaseTriggers = true;
+					this.CopyAllXmlSchemaCollections = true;
+
+					this.Options.ContinueScriptingOnError = true;
 
 					//transfer.CopyAllUserDefinedFunctions = true;
 					//transfer.CopyAllUserDefinedTypes = true;
 
-					transfer.TargetDatabaseFilePath = GetServerDirectory(target);
-					RemapServerFiles(server, transfer, source, target);
+					this.TargetDatabaseFilePath = GetServerDirectory(target, server);
+					RemapServerFiles(server, this, source, target);
+					this.BulkCopyTimeout = 10000;
 
-					transfer.TransferData();
+					this.Scripter.FilterCallbackFunction = new ScriptingFilter(x =>
+					{
+						Console.WriteLine(x.Value);
+						return true;
+					});
+					
+					var script = this.ScriptTransfer().Cast<string>();
+					script = script.Except(script.Where(s => s.Contains("NOC1GENPRPT03")));
+					File.WriteAllLines(@"C:\temp\xfer.sql", script);
+
+					using (var targetConnection = new SqlConnection(target.ConnectionString))
+					{
+						var targetServer = new Server(new ServerConnection(targetConnection));
+						var db = targetServer.Databases[target.Database];
+						foreach(var sql in script)
+						{
+							Console.WriteLine("Executing {0}", sql);
+							try
+							{
+								db.ExecuteNonQuery(sql);
+							}
+							catch (Exception e)
+							{
+								Console.WriteLine(e.Message);
+							}
+						}
+					}
+
+					//this.TransferData();
 				}
 				finally
 				{
@@ -92,7 +169,7 @@ namespace Run00.SqlCopySqlServer
 
 		private static void RemapServerFiles(Server server, Transfer transfer, DatabaseInfo source, DatabaseInfo target)
 		{
-			var dir = GetServerDirectory(target);
+			var dir = GetServerDirectory(target, server);
 			var dataFiles = server.Databases[source.Database].FileGroups.Cast<FileGroup>().SelectMany(fg => fg.Files.Cast<DataFile>()).ToList();
 			var dataFile = dataFiles.Select(f => f.FileName);
 			foreach (var file in dataFile)
@@ -104,12 +181,12 @@ namespace Run00.SqlCopySqlServer
 				transfer.DatabaseFileMappings.Add(file, Path.Combine(dir, Path.GetFileName(file).Replace(source.Database, target.Database)));
 		}
 
-		private static string GetServerDirectory(DatabaseInfo target)
+		private static string GetServerDirectory(DatabaseInfo target, Server server)
 		{
 			var result = string.Empty;
-			using (var connection = new SqlConnection(target.ConnectionString))
-			{
-				var server = new Server(new ServerConnection(connection));				
+			//using (var connection = new SqlConnection(target.ConnectionString))
+			//{
+			//	var server = new Server(new ServerConnection(connection));				
 				try
 				{
 					result = server.Information.MasterDBPath;
@@ -118,7 +195,7 @@ namespace Run00.SqlCopySqlServer
 				{
 					result = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 				}
-			}
+			//}
 			return result;
 		}
 		

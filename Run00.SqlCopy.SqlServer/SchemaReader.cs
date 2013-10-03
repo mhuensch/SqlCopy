@@ -100,7 +100,8 @@ namespace Run00.SqlCopySqlServer
 					return isNullable ? typeof(float?) : typeof(float);
 
 				case SqlDataType.UniqueIdentifier:
-					return isNullable ? typeof(Guid?) : typeof(Guid);
+					return typeof(Guid);
+					//return isNullable ? typeof(Guid?) : typeof(Guid);
 
 				case SqlDataType.SmallInt:
 					return isNullable ? typeof(short?) : typeof(short);

@@ -14,6 +14,7 @@ namespace Run00.SqlCopySqlServer
 		{
 			System.Diagnostics.Debug.WriteLine("Copying table " + dataTable.TableName);
 			var copy = new SqlBulkCopy(targetDatabase.ConnectionString);
+			copy.BulkCopyTimeout = 60000;
 			if (dataTable.TableName.Equals("dbo.user"))
 			{
 				dataTable.TableName = "[dbo].[user]";

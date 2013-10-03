@@ -53,9 +53,9 @@ namespace Run00.SqlCopy.IntegrationTest
 			var source = new DatabaseInfo(sourceConnection);
 			var target = new DatabaseInfo(targetConnection);
 
-			//Locator.Test<ISchemaCopy>(a =>
-			//	a.CopySchema(source, target)
-			//);
+			Locator.Test<ISchemaCopy>(a =>
+				a.CopySchema(source, target)
+			);
 
 			Locator.Test<IDataCopy>(dc =>
 				dc.CopyData(source, target)
