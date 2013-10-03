@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Run00.SqlCopyDynamicContext
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Run00.SqlCopySchema", "Run00.SqlCopySchema\Run00.SqlCopySchema.csproj", "{F81A055C-1398-44BC-8B89-2DF951BF7C81}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Savo.SqlCopy", "Savo.SqlCopy\Savo.SqlCopy.csproj", "{8C0A1C7E-F4E8-4DDA-90FB-DAD9E06A0341}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{F81A055C-1398-44BC-8B89-2DF951BF7C81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F81A055C-1398-44BC-8B89-2DF951BF7C81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F81A055C-1398-44BC-8B89-2DF951BF7C81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C0A1C7E-F4E8-4DDA-90FB-DAD9E06A0341}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C0A1C7E-F4E8-4DDA-90FB-DAD9E06A0341}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C0A1C7E-F4E8-4DDA-90FB-DAD9E06A0341}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C0A1C7E-F4E8-4DDA-90FB-DAD9E06A0341}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

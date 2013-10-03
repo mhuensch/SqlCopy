@@ -74,6 +74,7 @@ namespace Run00.SqlCopySqlServer
 				case SqlDataType.VarChar:
 				case SqlDataType.VarCharMax:
 				case SqlDataType.Xml:
+				case SqlDataType.SysName:
 					return typeof(string);
 
 				case SqlDataType.DateTime:
@@ -83,6 +84,7 @@ namespace Run00.SqlCopySqlServer
 				case SqlDataType.DateTime2:
 					return isNullable ? typeof(DateTime?) : typeof(DateTime);
 
+				case SqlDataType.Numeric:
 				case SqlDataType.Decimal:
 				case SqlDataType.Money:
 				case SqlDataType.SmallMoney:
@@ -98,7 +100,8 @@ namespace Run00.SqlCopySqlServer
 					return isNullable ? typeof(float?) : typeof(float);
 
 				case SqlDataType.UniqueIdentifier:
-					return isNullable ? typeof(Guid?) : typeof(Guid);
+					return typeof(Guid);
+					//return isNullable ? typeof(Guid?) : typeof(Guid);
 
 				case SqlDataType.SmallInt:
 					return isNullable ? typeof(short?) : typeof(short);
