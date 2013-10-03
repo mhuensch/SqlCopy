@@ -118,7 +118,7 @@ namespace Run00.SqlCopySqlServer
 					this.CopyAllUserDefinedFunctions = true;
 					this.CopyAllUserDefinedDataTypes = true;
 					this.CopyAllUserDefinedAggregates = true;
-					this.CopyAllSequences = true;
+					//this.CopyAllSequences = true;
 					this.CopyAllDatabaseTriggers = true;
 					this.CopyAllXmlSchemaCollections = true;
 
@@ -129,13 +129,13 @@ namespace Run00.SqlCopySqlServer
 
 					this.TargetDatabaseFilePath = GetServerDirectory(target, server);
 					RemapServerFiles(server, this, source, target);
-					this.BulkCopyTimeout = 10000;
+					//this.BulkCopyTimeout = 10000;
 
-					this.Scripter.FilterCallbackFunction = new ScriptingFilter(x =>
-					{
-						Console.WriteLine(x.Value);
-						return true;
-					});
+					//this.Scripter.FilterCallbackFunction = new ScriptingFilter(x =>
+					//{
+					//	Console.WriteLine(x.Value);
+					//	return true;
+					//});
 					
 					var script = this.ScriptTransfer().Cast<string>();
 					script = script.Except(script.Where(s => s.Contains("NOC1GENPRPT03")));
