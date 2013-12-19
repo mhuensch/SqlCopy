@@ -10,7 +10,10 @@ namespace Run00.SqlCopy.IntegrationTest
 
 		public DbSet<Sample> Samples { get; set; }
 		public DbSet<SampleChild> SampleChildren { get; set; }
-		public DbSet<SampleGrandChild> SampleGrandChildren { get; set; }
+		public DbSet<SampleGrandChild> SampleGrandChilds { get; set; }
+		public DbSet<Tenant> Tenant { get; set; }
+		public DbSet<Library> Library { get; set; }
+		public DbSet<LibraryPermission> LibraryPermission { get; set; }
 	}
 
 	public class Sample
@@ -35,5 +38,24 @@ namespace Run00.SqlCopy.IntegrationTest
 		public Guid Id { get; set; }
 		public string Value { get; set; }
 		public SampleChild Parent { get; set; }
+	}
+
+	public class Tenant
+	{
+		public int Id { get; set; }
+		public ICollection<Library> Libraries { get; set; }
+	}
+
+	public class Library
+	{
+		public int Id { get; set; }
+		public Tenant Tenant { get; set; }
+		public ICollection<LibraryPermission> LibraryPermissions { get; set; }
+	}
+
+	public class LibraryPermission
+	{
+		public int Id { get; set; }
+		public Library Library { get; set; }
 	}
 }

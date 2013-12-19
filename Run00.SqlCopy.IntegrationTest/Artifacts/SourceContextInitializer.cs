@@ -35,6 +35,20 @@ namespace Run00.SqlCopy.IntegrationTest
 				Children = new[] { sampleTwoChildOne, sampleTwoChildTwo }
 			};
 			context.Samples.Add(sampleTwo);
+
+			var tenant = new Tenant() { Id = 1 };
+			var library = new Library() { Tenant = tenant };
+			var perm = new LibraryPermission() { Library = library };
+			context.Tenant.Add(tenant);
+			context.Library.Add(library);
+			context.LibraryPermission.Add(perm);
+
+			var otherTenant = new Tenant { Id = 2 };
+			var otherLibrary = new Library() { Tenant = otherTenant };
+			var otherPerm = new LibraryPermission() { Library = otherLibrary };
+			context.Tenant.Add(otherTenant);
+			context.Library.Add(otherLibrary);
+			context.LibraryPermission.Add(otherPerm);
 		}
 	}
 }

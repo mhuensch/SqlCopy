@@ -18,7 +18,7 @@ namespace Run00.SqlCopy.IntegrationTest
 	{
 		public override IQueryable<ITenantEntity> Filter(IQueryable<ITenantEntity> entities)
 		{
-			var result = entities.Where(o => o.tenant_id == 334);
+			var result = entities.Where(o => o.tenant_id == 1);
 			return result;
 		}
 	}

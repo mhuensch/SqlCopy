@@ -41,7 +41,7 @@ namespace Run00.SqlCopySqlServer
 			return table.Columns.Cast<Microsoft.SqlServer.Management.Smo.Column>().Select(c => new Run00.SqlCopySchema.Column()
 			{
 				Name = c.Name,
-				Nullable = c.Nullable,
+				//Nullable = c.Nullable,
 				Type = GetClrType(c.DataType.SqlDataType, c.Nullable),
 				InPrimaryKey = c.InPrimaryKey,
 				Table = table.Name
@@ -53,7 +53,8 @@ namespace Run00.SqlCopySqlServer
 			switch (sqlType)
 			{
 				case SqlDataType.BigInt:
-					return isNullable ? typeof(long?) : typeof(long);
+					return typeof(long);
+					//return isNullable ? typeof(long?) : typeof(long);
 
 				case SqlDataType.Binary:
 				case SqlDataType.Image:
@@ -63,7 +64,8 @@ namespace Run00.SqlCopySqlServer
 					return typeof(byte[]);
 
 				case SqlDataType.Bit:
-					return isNullable ? typeof(bool?) : typeof(bool);
+					return typeof(bool);
+					//return isNullable ? typeof(bool?) : typeof(bool);
 
 				case SqlDataType.Char:
 				case SqlDataType.NChar:
@@ -82,22 +84,27 @@ namespace Run00.SqlCopySqlServer
 				case SqlDataType.Date:
 				case SqlDataType.Time:
 				case SqlDataType.DateTime2:
-					return isNullable ? typeof(DateTime?) : typeof(DateTime);
+					return typeof(DateTime);
+					//return isNullable ? typeof(DateTime?) : typeof(DateTime);
 
 				case SqlDataType.Numeric:
 				case SqlDataType.Decimal:
 				case SqlDataType.Money:
 				case SqlDataType.SmallMoney:
-					return isNullable ? typeof(decimal?) : typeof(decimal);
+					return typeof(decimal);
+					//return isNullable ? typeof(decimal?) : typeof(decimal);
 
 				case SqlDataType.Float:
-					return isNullable ? typeof(double?) : typeof(double);
+					return typeof(double);
+					//return isNullable ? typeof(double?) : typeof(double);
 
 				case SqlDataType.Int:
-					return isNullable ? typeof(int?) : typeof(int);
+					return typeof(int);
+					//return isNullable ? typeof(int?) : typeof(int);
 
 				case SqlDataType.Real:
-					return isNullable ? typeof(float?) : typeof(float);
+					return typeof(float);
+					//return isNullable ? typeof(float?) : typeof(float);
 
 				case SqlDataType.UniqueIdentifier:
 					return typeof(Guid);
@@ -114,7 +121,8 @@ namespace Run00.SqlCopySqlServer
 					return typeof(object);
 
 				case SqlDataType.DateTimeOffset:
-					return isNullable ? typeof(DateTimeOffset?) : typeof(DateTimeOffset);
+					return typeof(DateTimeOffset);
+					//return isNullable ? typeof(DateTimeOffset?) : typeof(DateTimeOffset);
 
 				default:
 					throw new ArgumentOutOfRangeException("sqlType");

@@ -44,42 +44,6 @@ namespace Run00.SqlCopy.IntegrationTest
 			//Assert.AreEqual(1, testContext.SampleChildren.Count());
 		}
 
-		[TestMethod]
-		public void CopyTenantStuff()
-		{
-			string sourceConnection = @"Data Source=qadb01;Initial Catalog=SAVO_LAB;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False";
-			string targetConnection = @"Data Source=corws10348;Initial Catalog=SAVO_LAB_TEST;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False";
-
-			var source = new DatabaseInfo(sourceConnection);
-			var target = new DatabaseInfo(targetConnection);
-
-			Locator.Test<ISchemaCopy>(a =>
-				a.CopySchema(source, target)
-			);
-
-			Locator.Test<IDataCopy>(dc =>
-				dc.CopyData(source, target)
-			);
-		}
-
-		[TestMethod]
-		public void CopyPlatformTenantStuff()
-		{
-			string sourceConnection = @"Data Source=qadb01;Initial Catalog=SAVO_LAB_PLATFORM;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False";
-			string targetConnection = @"Data Source=corws10348;Initial Catalog=SAVO_LAB_PLATFORM_TEST;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False";
-
-			var source = new DatabaseInfo(sourceConnection);
-			var target = new DatabaseInfo(targetConnection);
-
-			//Locator.Test<ISchemaCopy>(a =>
-			//	a.CopySchema(source, target)
-			//);
-
-			Locator.Test<IDataCopy>(dc =>
-				dc.CopyData(source, target)
-			);
-		}
-
 		public const string _sourceConnection = @"Data Source=(localdb)\v11.0;Initial Catalog=SourceContext;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False";
 		public const string _targetConnection = @"Data Source=(localdb)\v11.0;Initial Catalog=SourceContextToo;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=False";
 	}
