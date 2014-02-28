@@ -9,5 +9,6 @@ namespace Run00.SqlCopy
 	public interface ISchemaCopy
 	{
 		void CopySchema(DatabaseInfo source, DatabaseInfo target);
+		void CopySchema(DatabaseInfo source, DatabaseInfo target, SchemaRewriteInfo rewriteInfo);
 	}
 }

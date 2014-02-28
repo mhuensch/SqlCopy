@@ -12,7 +12,13 @@ namespace Run00.SqlCopySqlServer
 	{
 		void ITableBulkCopy.Copy(DatabaseInfo targetDatabase, DataTable dataTable)
 		{
-			var copy = new SqlBulkCopy(targetDatabase.ConnectionString);
+			System.Diagnostics.Debug.WriteLine(String.Format("Copying {0} rows for table {1}", dataTable.Rows.Count, dataTable.TableName));
+			var copy = new SqlBulkCopy(targetDatabase.ConnectionString, SqlBulkCopyOptions.KeepIdentity | SqlBulkCopyOptions.KeepNulls);
+			copy.BulkCopyTimeout = 60000;
+			if (dataTable.TableName.Equals("dbo.user"))
+			{
+				dataTable.TableName = "[dbo].[user]";
+			}
 			copy.DestinationTableName = dataTable.TableName;
 			copy.WriteToServer(dataTable);
 		}

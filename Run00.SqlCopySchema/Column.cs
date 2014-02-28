@@ -8,6 +8,6 @@ namespace Run00.SqlCopySchema
 		public string Table { get; set; }
 		public Type Type { get; set; }
 		public bool InPrimaryKey { get; set; }
-		public bool Nullable { get; set; }
+		//public bool Nullable { get; set; }
 	}
 }

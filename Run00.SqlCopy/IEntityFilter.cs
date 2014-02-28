@@ -7,75 +7,129 @@ using System.Threading.Tasks;
 
 namespace Run00.SqlCopy
 {
-	public interface IEntityFilter
-	{
-		Type EntityType { get; }
-		IQueryable Filter(IQueryable entities, IDbRepository repository);
-	}
+    public interface IEntityFilter
+    {
+        Type EntityType { get; }
+        IQueryable Filter(IQueryable entities, IDbRepository repository);
+    }
 
-	public interface IEntityFilter<TEntity> : IEntityFilter
-	{
-		IQueryable<TEntity> Filter(IQueryable<TEntity> entities);
-	}
+    public interface IEntityFilter<TEntity> : IEntityFilter
+    {
+        IQueryable<TEntity> Filter(IQueryable<TEntity> entities);
+    }
 
-	public interface IEntityFilter<TEntity, TReleatedEntity> : IEntityFilter where TReleatedEntity : class
-	{
-		IQueryable<TEntity> Filter(IQueryable<TEntity> entities, IQueryable<TReleatedEntity> releatedEntities);
-	}
+    public interface IEntityFilter<TEntity, TReleatedEntity> : IEntityFilter where TReleatedEntity : class
+    {
+        IQueryable<TEntity> Filter(IQueryable<TEntity> entities, IQueryable<TReleatedEntity> releatedEntities);
+    }
 
-	public abstract class BaseFilter : IEntityFilter
-	{
-		public abstract Type EntityType { get; }
+    public interface IEntityFilter<TEntity, TReleatedEntity, TOtherEntity> : IEntityFilter where TReleatedEntity : class
+    {
+        IQueryable<TEntity> Filter(IQueryable<TEntity> entities, IQueryable<TReleatedEntity> releatedEntities, IQueryable<TOtherEntity> otherEntities);
+    }
 
-		public abstract IQueryable RunFilter(IQueryable entities, IDbRepository repository);
+    public interface IEntityFilter<TEntity, TReleatedEntity, TOtherEntity, TTHirdEntity> : IEntityFilter where TReleatedEntity : class
+    {
+        IQueryable<TEntity> Filter(IQueryable<TEntity> entities, IQueryable<TReleatedEntity> releatedEntities, IQueryable<TOtherEntity> otherEntities, IQueryable<TTHirdEntity> moreEntities);
+    }
 
-		IQueryable IEntityFilter.Filter(IQueryable entities, IDbRepository repository)
-		{
-			var origElementType = entities.ElementType;
+    public abstract class BaseFilter : IEntityFilter
+    {
+        public abstract Type EntityType { get; }
 
-			if (EntityType.IsAssignableFrom(origElementType) == false)
-				return entities;
+        public abstract IQueryable RunFilter(IQueryable entities, IDbRepository repository);
 
-			var result = RunFilter(entities, repository);
-			var recastResult = ReCast(result, origElementType);
-			return recastResult;
-		}
+        IQueryable IEntityFilter.Filter(IQueryable entities, IDbRepository repository)
+        {
+            var origElementType = entities.ElementType;
 
-		private static IQueryable ReCast(IQueryable source, Type toType)
-		{
-			if (castMethod == null)
-				castMethod = typeof(Queryable).GetMethod("Cast");
+            if (EntityType.IsAssignableFrom(origElementType) == false)
+                return entities;
 
-			var typeCast = castMethod.MakeGenericMethod(new Type[] { toType });
-			return typeCast.Invoke(null, new object[] { source }) as IQueryable;
-		}
+            var result = RunFilter(entities, repository);
+            var recastResult = ReCast(result, origElementType);
+            return recastResult;
+        }
 
-		private static MethodInfo castMethod;
-	}
+        private static IQueryable ReCast(IQueryable source, Type toType)
+        {
+            if (castMethod == null)
+                castMethod = typeof(Queryable).GetMethod("Cast");
 
-	public abstract class BaseEntityFilter<TEntity> : BaseFilter, IEntityFilter<TEntity>
-	{
-		public abstract IQueryable<TEntity> Filter(IQueryable<TEntity> entities);
+            var typeCast = castMethod.MakeGenericMethod(new Type[] { toType });
+            return typeCast.Invoke(null, new object[] { source }) as IQueryable;
+        }
 
-		public override Type EntityType { get { return typeof(TEntity); } }
+        private static MethodInfo castMethod;
+    }
 
-		public override IQueryable RunFilter(IQueryable entities, IDbRepository repository)
-		{
-			return Filter((IQueryable<TEntity>)entities);
-		}
-	}
+    public abstract class BaseEntityFilter<TEntity> : BaseFilter, IEntityFilter<TEntity>
+    {
+        public abstract IQueryable<TEntity> Filter(IQueryable<TEntity> entities);
 
-	public abstract class BaseReleatedEntityFilter<TEntity, TReleatedEntity> : BaseFilter, IEntityFilter<TEntity, TReleatedEntity> where TReleatedEntity : class
-	{
-		public abstract IQueryable<TEntity> Filter(IQueryable<TEntity> entities, IQueryable<TReleatedEntity> releatedEntities);
+        public override Type EntityType { get { return typeof(TEntity); } }
 
-		public abstract string ReleatedEntityName { get; }
+        public override IQueryable RunFilter(IQueryable entities, IDbRepository repository)
+        {
+            return Filter((IQueryable<TEntity>)entities);
+        }
+    }
 
-		public override Type EntityType { get { return typeof(TEntity); } }
+    public abstract class BaseReleatedEntityFilter<TEntity, TReleatedEntity> : BaseFilter, IEntityFilter<TEntity, TReleatedEntity> where TReleatedEntity : class
+    {
+        public abstract IQueryable<TEntity> Filter(IQueryable<TEntity> entities, IQueryable<TReleatedEntity> releatedEntities);
 
-		public override IQueryable RunFilter(IQueryable entities, IDbRepository repository)
-		{
-			return Filter((IQueryable<TEntity>)entities, (IQueryable<TReleatedEntity>)repository.GetEntities(ReleatedEntityName));
-		}
-	}
+        public abstract string ReleatedEntityName { get; }
+
+        public override Type EntityType { get { return typeof(TEntity); } }
+
+        public override IQueryable RunFilter(IQueryable entities, IDbRepository repository)
+        {
+            return Filter((IQueryable<TEntity>)entities, (IQueryable<TReleatedEntity>)repository.GetEntities(ReleatedEntityName));
+        }
+    }
+
+    //public interface IEntityFilter<
+    //public abstract class BaseChainedFilter<TEntity, TUpstreamFilter> : BaseFilter where TUpstreamFilter : class
+    //{
+    //}
+
+    public abstract class BaseThreeWayFilter<TEntity, TFirstEntity, TSecondEntity> : BaseFilter, IEntityFilter<TEntity, TFirstEntity, TSecondEntity>
+        where TEntity : class
+        where TFirstEntity : class
+    {        
+        public abstract IQueryable<TEntity> Filter(IQueryable<TEntity> entities, IQueryable<TFirstEntity> releatedEntities, IQueryable<TSecondEntity> otherEntities);
+
+        public abstract string ReleatedEntityName { get; }
+
+        public abstract string SecondEntityName { get; }
+
+        public override Type EntityType { get { return typeof(TEntity); } }
+
+        public override IQueryable RunFilter(IQueryable entities, IDbRepository repository)
+        {
+            return Filter((IQueryable<TEntity>)entities, (IQueryable<TFirstEntity>)repository.GetEntities(ReleatedEntityName), (IQueryable<TSecondEntity>)repository.GetEntities(SecondEntityName));
+        }
+    }
+
+    public abstract class BaseFourWayFilter<TEntity, TFirstEntity, TSecondEntity, TTHirdEntity> : BaseFilter, IEntityFilter<TEntity, TFirstEntity, TSecondEntity, TTHirdEntity>
+        where TEntity : class
+        where TFirstEntity : class
+        where TTHirdEntity : class
+    {
+        public abstract IQueryable<TEntity> Filter(IQueryable<TEntity> entities, IQueryable<TFirstEntity> releatedEntities, IQueryable<TSecondEntity> otherEntities, IQueryable<TTHirdEntity> moreEntities);
+
+        public abstract string ReleatedEntityName { get; }
+
+        public abstract string SecondEntityName { get; }
+
+        public abstract string ThirdEntityName { get; }
+
+        public override Type EntityType { get { return typeof(TEntity); } }
+
+        public override IQueryable RunFilter(IQueryable entities, IDbRepository repository)
+        {
+            return Filter((IQueryable<TEntity>)entities, (IQueryable<TFirstEntity>)repository.GetEntities(ReleatedEntityName), (IQueryable<TSecondEntity>)repository.GetEntities(SecondEntityName), (IQueryable<TTHirdEntity>)repository.GetEntities(ThirdEntityName));
+        }
+    }
 }

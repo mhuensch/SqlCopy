@@ -26,8 +26,17 @@ namespace Run00.SqlCopyData
 		{
 			foreach (var query in GetEntityQueries(source))
 			{
-				var entityDataTable = _entityTableFactory.Create(query);
-				_tableBulkCopy.Copy(target, entityDataTable);
+                var entityDataTable = _entityTableFactory.Create(query);
+                Console.WriteLine(String.Format("Copying data from {0}", entityDataTable.TableName));                
+				try
+				{                    
+					_tableBulkCopy.Copy(target, entityDataTable);
+				}
+				catch (Exception e)
+				{
+                    
+					Console.WriteLine(String.Format("CopyData encountered an error: {0} {1} {2}", e.Message, Environment.NewLine, e.StackTrace));
+				}
 			}
 		}
 

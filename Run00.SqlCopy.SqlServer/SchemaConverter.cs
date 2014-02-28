@@ -36,7 +36,7 @@ namespace Run00.SqlCopySqlServer
 
 				var type = typeBuilder.CreateType();
 				result.Add(type);
-			}
+			}           
 
 			return result;
 		}
@@ -47,6 +47,7 @@ namespace Run00.SqlCopySqlServer
 			const string GetterPrefix = "get_";
 			const string SetterPrefix = "set_";
 
+            
 			// Generate the field.
 			FieldBuilder fieldBuilder = builder.DefineField(
 					string.Concat(PrivateFieldPrefix, propertyName), propertyType, FieldAttributes.Private);
