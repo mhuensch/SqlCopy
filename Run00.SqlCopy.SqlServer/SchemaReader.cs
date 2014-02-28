@@ -84,8 +84,8 @@ namespace Run00.SqlCopySqlServer
 				case SqlDataType.Date:
 				case SqlDataType.Time:
 				case SqlDataType.DateTime2:
-					return typeof(DateTime);
-					//return isNullable ? typeof(DateTime?) : typeof(DateTime);
+					//return typeof(DateTime);
+					return isNullable ? typeof(DateTime?) : typeof(DateTime);
 
 				case SqlDataType.Numeric:
 				case SqlDataType.Decimal:
@@ -99,8 +99,8 @@ namespace Run00.SqlCopySqlServer
 					//return isNullable ? typeof(double?) : typeof(double);
 
 				case SqlDataType.Int:
-					return typeof(int);
-					//return isNullable ? typeof(int?) : typeof(int);
+					//return typeof(int);
+					return isNullable ? typeof(int?) : typeof(int);
 
 				case SqlDataType.Real:
 					return typeof(float);

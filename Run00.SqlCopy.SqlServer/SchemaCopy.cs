@@ -25,6 +25,14 @@ namespace Run00.SqlCopySqlServer
 			CopySourceDatabaseToTarget(source, target);
 		}
 
+		void ISchemaCopy.CopySchema(DatabaseInfo source, DatabaseInfo target, SchemaRewriteInfo rewriteInfo)
+		{
+			this._rewriteInfo = rewriteInfo;
+			DropTargetDatabseIfExists(target);
+			CreateDatabase(target);
+			CopySourceDatabaseToTarget(source, target);
+		}
+
 		private static void CreateDatabase(DatabaseInfo location)
 		{
 			Log("creating target");
@@ -80,9 +88,6 @@ namespace Run00.SqlCopySqlServer
 
 					// db.Drop() doens't seem to close existing connections
 					server.KillDatabase(location.Database);
-
-					//db.AutoClose = true;
-					//db.Drop();
 				}
 				catch (SqlException ex)
 				{
@@ -147,22 +152,6 @@ namespace Run00.SqlCopySqlServer
 					RemapServerFiles(server, this, source, target);
 					//this.BulkCopyTimeout = 10000;
 
-<<<<<<< HEAD
-					this.Scripter.FilterCallbackFunction = new ScriptingFilter(x =>
-					{
-						//Console.WriteLine(x.Value);
-						//Log(x.Value);
-						return true;
-					});
-
-=======
-					//this.Scripter.FilterCallbackFunction = new ScriptingFilter(x =>
-					//{
-					//	Console.WriteLine(x.Value);
-					//	return true;
-					//});
-					
->>>>>>> f7de11fc67af160c99a13ff5060d45405a808504
 					var script = this.ScriptTransfer().Cast<string>();
 					script = script.Except(script.Where(s => s.Contains("NOC1GENPRPT03")));
 					File.WriteAllLines(@"C:\temp\xfer.sql", script);
@@ -216,18 +205,16 @@ namespace Run00.SqlCopySqlServer
 						var db = targetServer.Databases[target.Database];
 						foreach(var sql in script)
 						{
-							//Console.WriteLine("Executing {0}", sql);
-							//Log(String.Format("Executing {0}", sql));
 							try
 							{
-								db.ExecuteNonQuery(sql);
+								db.ExecuteNonQuery(RewriteSql(sql, source.Database, target.Database));
 							}
 							catch (Exception e)
 							{
 								Console.WriteLine(e.Message);
 								Log("Exception executing sql");
 								Log(e.Message);
-								Log(e.InnerException.Message);
+								Log(e.InnerException.InnerException.Message);
 							}
 						}
 					}
@@ -240,6 +227,21 @@ namespace Run00.SqlCopySqlServer
 				}
 			}
 			Log("done copying source to target");
+		}
+
+		private string RewriteSql(string sql, string sourceDatabase, string targetDatabase)
+		{
+            // hack
+            if (sql.Contains("CREATE FUNCTION [dbo].[fn_SplitIntsFromXml](@input varchar(max))"))
+            {
+                sql = "SET QUOTED_IDENTIFIER ON\r\nGO\r\n" + sql;
+            }
+			//if (_rewriteInfo == null)
+			//	return sql;
+			//return sql.ToLower().Replace(_rewriteInfo.OldPrefix.ToLower(), _rewriteInfo.NewPrefix.ToLower());
+			//return sql.Replace(_rewriteInfo.OldPrefix, _rewriteInfo.NewPrefix);
+			// replace any references to the source database name with the target
+			return sql.Replace(sourceDatabase, targetDatabase);
 		}
 
 		private static void RemapServerFiles(Server server, Transfer transfer, DatabaseInfo source, DatabaseInfo target)
@@ -274,5 +276,6 @@ namespace Run00.SqlCopySqlServer
 			return result;
 		}
 
+		private SchemaRewriteInfo _rewriteInfo;
 	}
 }
